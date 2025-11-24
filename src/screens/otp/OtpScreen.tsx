@@ -39,7 +39,7 @@ export default function Otp() {
     <Box
       sx={{
         width: "100%",
-        minHeight: "100vh",
+        height: { xs: "100dvh", md: "100vh" },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -67,7 +67,7 @@ export default function Otp() {
       <Box
         sx={{
           background: "#fff",
-          height: "350px",
+          height: "370px",
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           p: 4,
@@ -110,14 +110,17 @@ export default function Otp() {
               onChange={(e) => handleChange(e.target.value, index)}
               onKeyDown={(e) => handleKeyDown(e, index)}
               inputRef={(el) => (inputRefs.current[index] = el)}
+              type="tel"
               slotProps={{
-                input: {
+                htmlInput: {
+                  // 2. "numeric" + pattern helps iOS and accessibility tools
                   inputMode: "numeric",
+                  pattern: "[0-9]*",
+                  maxLength: 1,
                   style: {
                     textAlign: "center",
                     fontSize: "24px",
-                    padding: 0,
-                    height: "56px",
+                    // Removed padding/height here to let Flexbox handle alignment
                   },
                 },
               }}
@@ -125,6 +128,21 @@ export default function Otp() {
                 width: 56,
                 "& .MuiOutlinedInput-root": {
                   borderRadius: "10px",
+                  height: "56px", // Set height on the container
+                  padding: "0px",
+                  display: "flex",
+                  alignItems: "center", // Vertically center the content
+                  justifyContent: "center",
+                  border: "none",
+                },
+                // Ensure the input element inside takes full space but respects center
+                "& .MuiOutlinedInput-input": {
+                  padding: 0,
+                  height: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  border: "none",
                 },
               }}
             />

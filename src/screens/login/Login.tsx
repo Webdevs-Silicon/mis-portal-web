@@ -10,7 +10,7 @@ export default function Login() {
     <Box
       sx={{
         width: "100%",
-        minHeight: "100vh",
+        height: { xs: "100dvh", md: "100vh" },
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -38,7 +38,7 @@ export default function Login() {
       <Box
         sx={{
           background: "#fff",
-          height: "350px",
+          height: "370px",
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           p: 4,
