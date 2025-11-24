@@ -1,6 +1,7 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import LinearGradientBackground from "../../components/LinearGradientBackground";
 
 export default function Otp() {
   const [otp, setOtp] = useState(["", "", "", ""]);
@@ -46,14 +47,11 @@ export default function Otp() {
       }}
     >
       {/* Top Background */}
-      <Box
+      <LinearGradientBackground
         sx={{
-          flex: 1, // expands naturally
-          background: "#0066ff",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          pt: 4,
+          flex: 1, // Expand naturally to fill top space
+          justifyContent: "flex-start",
+          pt: 8, // Push logo down slightly
         }}
       >
         <img
@@ -61,7 +59,7 @@ export default function Otp() {
           alt="logo"
           style={{ width: 150, objectFit: "contain" }}
         />
-      </Box>
+      </LinearGradientBackground>
 
       {/* White Card */}
       <Box

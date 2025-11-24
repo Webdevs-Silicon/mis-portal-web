@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import LinearGradientBackground from "../../components/LinearGradientBackground";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,14 +18,11 @@ export default function Login() {
       }}
     >
       {/* Background Header */}
-      <Box
+      <LinearGradientBackground
         sx={{
-          flex: 1, // expands naturally
-          background: "#0066ff",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "flex-start",
-          pt: 4,
+          flex: 1, // Expand naturally to fill top space
+          justifyContent: "flex-start",
+          pt: 8, // Push logo down slightly
         }}
       >
         <img
@@ -32,7 +30,7 @@ export default function Login() {
           alt="logo"
           style={{ width: 150, objectFit: "contain" }}
         />
-      </Box>
+      </LinearGradientBackground>
 
       {/* White Bottom Card */}
       <Box
