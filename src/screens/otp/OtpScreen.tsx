@@ -1,13 +1,20 @@
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LinearGradientBackground from "../../components/LinearGradientBackground";
+import { resendOtp, verifyOtp } from "../../api/services/authService";
 
 export default function Otp() {
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [logo, setLogo] = useState<string | null>(null);
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const savedLogo = localStorage.getItem("bankLogo");
+    setLogo(savedLogo);
+  }, []);
 
   const handleChange = (value: string, index: number) => {
     if (!/^\d?$/.test(value)) return; // only numbers or empty
@@ -28,12 +35,27 @@ export default function Otp() {
     }
   };
 
-  const handleVerifyOtp = () => {
-    console.log("clicked");
+  const handleVerifyOtp = async () => {
     const enteredOtp = otp.join("");
     console.log("Verifying OTP:", enteredOtp);
-    // Add your OTP verification logic here
-    navigate("/dashboard");
+    const res = await verifyOtp({
+      OTP: enteredOtp,
+    });
+    if (res.RC === "0") {
+      console.log("Otp res: ", res);
+      navigate("/dashboard");
+    } else {
+      console.log("Otp res: ", res);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    const res = await resendOtp({});
+    if (res.RC === "0") {
+      console.log("New otp sent");
+    } else {
+      console.log("Otp send failed:", res);
+    }
   };
 
   return (
@@ -65,7 +87,7 @@ export default function Otp() {
       <Box
         sx={{
           background: "#fff",
-          height: "370px",
+          height: "460px",
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           p: 4,
@@ -75,12 +97,7 @@ export default function Otp() {
           position: "relative",
         }}
       >
-        {/* Bank Logo */}
-        {/* <img
-          src="/bank-logo.png"
-          alt="logo"
-          style={{ width: 90, marginBottom: 15 }}
-        /> */}
+        {logo && <img src={logo} alt="Bank Logo" style={{ width: 98 }} />}
 
         <Typography variant="h6" fontWeight={700} sx={{ mt: 1 }}>
           Verify OTP
@@ -125,7 +142,7 @@ export default function Otp() {
               sx={{
                 width: 56,
                 "& .MuiOutlinedInput-root": {
-                  borderRadius: "10px",
+                  borderRadius: "4px",
                   height: "56px", // Set height on the container
                   padding: "0px",
                   display: "flex",
@@ -149,6 +166,7 @@ export default function Otp() {
 
         {/* Resend Link */}
         <Typography
+          onClick={handleResendOtp}
           sx={{
             mt: 2,
             mb: 2,

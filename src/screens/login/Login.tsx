@@ -1,9 +1,42 @@
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import LinearGradientBackground from "../../components/LinearGradientBackground";
+import { useEffect, useState } from "react";
+import { fetchBankLogo } from "../../api/services/authService";
 
 export default function Login() {
   const navigate = useNavigate();
+
+  const [logo, setLogo] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const cachedLogo = localStorage.getItem("bankLogo");
+
+    if (cachedLogo) {
+      setLogo(cachedLogo);
+      setLoading(false);
+      return;
+    }
+
+    const loadLogo = async () => {
+      try {
+        const base64 = await fetchBankLogo();
+        if (base64) {
+          const img = `data:image/png;base64,${base64}`;
+          localStorage.setItem("bankLogo", img);
+          setLogo(img);
+        }
+      } catch (err) {
+        console.error("Error loading logo:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLogo();
+  }, []);
+
   const handleLogin = () => {
     navigate("/otp");
   };
@@ -36,7 +69,7 @@ export default function Login() {
       <Box
         sx={{
           background: "#fff",
-          height: "370px",
+          height: "360px",
           borderTopLeftRadius: "30px",
           borderTopRightRadius: "30px",
           p: 4,
@@ -46,9 +79,15 @@ export default function Login() {
           position: "relative",
         }}
       >
-        <Typography variant="h5" fontWeight={700}>
+        <Typography variant="h5" fontWeight={700} marginBottom={2}>
           Welcome, Ganesh
         </Typography>
+
+        {loading ? (
+          <CircularProgress sx={{ color: "#fff" }} />
+        ) : (
+          <img src={logo ?? ""} alt="Bank Logo" style={{ width: 98 }} />
+        )}
 
         <Typography
           variant="body2"
