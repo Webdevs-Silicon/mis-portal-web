@@ -25,6 +25,77 @@ export interface GetFluidOverviewResponse {
   };
   FluidDetails: OverviewItem[];
 }
+// ===========================
+// Common interfaces
+export interface SummaryHeader {
+  RC: string;
+  TokenNo: string;
+}
+
+export interface PeriodData {
+  Amount?: number;
+  Percentage?: number;
+}
+
+export interface YOYData {
+  Percentage?: number;
+  YOY?: number;
+}
+
+export interface ProfitSummaryResponse {
+  Header: SummaryHeader;
+  ProfitPeriod: {
+    Yesterday: PeriodData;
+    LastMonth: PeriodData;
+    LastYear: PeriodData;
+    MonthlyAverage: PeriodData;
+    YOY: YOYData;
+  };
+}
+
+export interface FluidSummaryResponse {
+  Header: SummaryHeader;
+  FluidPeriod: {
+    Yesterday: PeriodData;
+    LastMonth: PeriodData;
+    LastYear: PeriodData;
+    MonthlyAverage: PeriodData;
+    YOY: YOYData;
+  };
+}
+
+export interface ODSummaryResponse {
+  Header: SummaryHeader;
+  ODPeriod: {
+    Yesterday: PeriodData;
+    LastMonth: PeriodData;
+    LastYear: PeriodData;
+    MonthlyAverage: PeriodData;
+    YOY: YOYData;
+  };
+}
+
+export interface WCSummaryResponse {
+  Header: SummaryHeader;
+  WCPeriod: {
+    Yesterday: PeriodData;
+    LastMonth: PeriodData;
+    LastYear: PeriodData;
+    MonthlyAverage: PeriodData;
+    YOY: YOYData;
+  };
+}
+
+export interface LDRSummaryResponse {
+  Header: SummaryHeader;
+  LDRPeriod: {
+    Yesterday: PeriodData;
+    LastMonth: PeriodData;
+    LastYear: PeriodData;
+    MonthlyAverage: PeriodData;
+    YOY: YOYData;
+  };
+}
 
 export const getProfitAndLoss =
   async (): Promise<GetPerformanceOverviewResponse> => {
@@ -46,5 +117,35 @@ export const getFluidOverview = async (): Promise<GetFluidOverviewResponse> => {
   const res = await apiClient.get<GetFluidOverviewResponse>("/", {
     params,
   });
+  return res.data;
+};
+
+export const getProfitSummary = async (): Promise<ProfitSummaryResponse> => {
+  const params = { RequestID: "ProfitSummary" };
+  const res = await apiClient.get<ProfitSummaryResponse>("/", { params });
+  return res.data;
+};
+
+export const getFluidSummary = async (): Promise<FluidSummaryResponse> => {
+  const params = { RequestID: "FluidSummary" };
+  const res = await apiClient.get<FluidSummaryResponse>("/", { params });
+  return res.data;
+};
+
+export const getODSummary = async (): Promise<ODSummaryResponse> => {
+  const params = { RequestID: "ODSummary" };
+  const res = await apiClient.get<ODSummaryResponse>("/", { params });
+  return res.data;
+};
+
+export const getWCSummary = async (): Promise<WCSummaryResponse> => {
+  const params = { RequestID: "WCSummary" };
+  const res = await apiClient.get<WCSummaryResponse>("/", { params });
+  return res.data;
+};
+
+export const getLDRSummary = async (): Promise<LDRSummaryResponse> => {
+  const params = { RequestID: "LDRSummary" };
+  const res = await apiClient.get<LDRSummaryResponse>("/", { params });
   return res.data;
 };

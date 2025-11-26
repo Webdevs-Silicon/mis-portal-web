@@ -5,10 +5,16 @@ import CalendarIcon from "../../assets/icons/calendarIcon.svg?react";
 import ValetIcon from "../../assets/icons/valetIcon.svg?react";
 import PercentIcon from "../../assets/icons/percentIcon.svg?react";
 import ViewMoreButton from "../ViewMoreButton";
+import { useState } from "react";
+import PerformancePopUp from "../popup/PerformancePopUp";
 
 export default function PerformanceSection() {
-  const handleMorePerformance = () => {
-    console.log("More performance clicked!");
+  const [activePopup, setActivePopup] = useState<string | null>(null);
+
+  const handleClosePopup = () => setActivePopup(null);
+
+  const handleMorePerformance = async () => {
+    setActivePopup("PerformancePopUp");
   };
 
   return (
@@ -84,6 +90,11 @@ export default function PerformanceSection() {
         title="View Performance Details"
         onPress={handleMorePerformance}
       />
+
+      {/* Render Popup */}
+      {activePopup === "PerformancePopUp" && (
+        <PerformancePopUp open={true} onClose={handleClosePopup} />
+      )}
     </Box>
   );
 }
