@@ -5,4 +5,7 @@ import svgr from "vite-plugin-svgr";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [svgr(), react()],
+   server: {
+    host: true, // This exposes the app to your network
+  }
 });
