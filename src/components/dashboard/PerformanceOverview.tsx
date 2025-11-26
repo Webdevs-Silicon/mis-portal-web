@@ -1,23 +1,52 @@
-import { Box, Typography, Stack, Chip } from "@mui/material";
+import { Box, Typography, Stack } from "@mui/material";
 import TrendingUpIcon from "../../assets/icons/trendingUpIcon.svg?react";
-import type { PerformanceData } from "../../types/dashboard";
+import { useState, useEffect } from "react";
 import { sizes } from "../../theme/theme";
+import Chip from "../Chip";
 
-type Props = {
-  data: PerformanceData;
+type ProfitAndLossItem = {
+  Date: string;
+  Amount: number;
+  Percentage: number;
 };
 
-const dummyChartData = [30, 35, 25, 40, 38, 45, 65]; // API-ready
+type Props = {
+  profitData: ProfitAndLossItem[];
+};
 
-export default function PerformanceOverview({ data }: Props) {
+export default function PerformanceOverview({ profitData }: Props) {
+  const [selected, setSelected] = useState<ProfitAndLossItem | null>(null);
+
+  // Set default selected = last item when data loads
+  useEffect(() => {
+    if (profitData && profitData.length > 0 && !selected) {
+      setSelected(profitData[profitData.length - 1]);
+    }
+  }, [profitData, selected]);
+
+  const handleBarClick = (item: ProfitAndLossItem) => {
+    setSelected(item);
+  };
+
+  // Still loading
+  if (!selected) {
+    return (
+      <Box sx={{ color: "#fff", p: 4 }}>Loading Performance Overview...</Box>
+    );
+  }
+
+  const formatToLakhs = (value: number) => {
+    if (value >= 100000) {
+      return (value / 100000).toFixed(1) + "L";
+    }
+    return value.toLocaleString(); // fallback
+  };
+
+  // Compute max height for scaling
+  const maxAmount = Math.max(...profitData.map((x) => Math.abs(x.Amount)));
+
   return (
-    <Box
-      sx={{
-        width: "100%",
-        padding: "20px",
-        background: "transparent",
-      }}
-    >
+    <Box sx={{ width: "100%", padding: "20px", background: "transparent" }}>
       <Typography
         sx={{
           fontSize: sizes.medium,
@@ -28,6 +57,7 @@ export default function PerformanceOverview({ data }: Props) {
       >
         Performance Overview
       </Typography>
+
       <Box
         sx={{
           borderRadius: 4,
@@ -38,8 +68,8 @@ export default function PerformanceOverview({ data }: Props) {
             "linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02))",
         }}
       >
+        {/* HEADER */}
         <Stack direction="row" justifyContent="space-between">
-          {/* HEADER ROW */}
           <Box
             sx={{
               display: "flex",
@@ -49,7 +79,7 @@ export default function PerformanceOverview({ data }: Props) {
               mb: 2,
             }}
           >
-            {/* LEFT SIDE */}
+            {/* LEFT */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Box
                 sx={{
@@ -78,58 +108,65 @@ export default function PerformanceOverview({ data }: Props) {
 
                 <Typography
                   sx={{
-                    fontSize: 30,
+                    fontSize: 24,
                     fontWeight: 700,
                     color: "#fff",
                   }}
                 >
-                  ₹ {data.profit / 100000}L
+                  ₹ {formatToLakhs(selected.Amount)}
                 </Typography>
               </Box>
             </Box>
 
-            {/* RIGHT SIDE (Chip only) */}
             <Chip
-              icon={<TrendingUpIcon color="green" width={20} height={20} />}
-              label={data.change}
-              sx={{
-                backgroundColor: "#fff",
-                fontWeight: 600,
-                color: "#0A8A40",
-                px: 1.5,
-                py: 0.5,
-                borderRadius: "16px",
-              }}
+              isPositive={selected.Percentage >= 0}
+              text={`${selected.Percentage}%`}
             />
           </Box>
         </Stack>
+
+        {/* BAR CHART */}
         <Stack
           direction="row"
           spacing={1.5}
           alignItems="flex-end"
           sx={{ mt: 1 }}
         >
-          {dummyChartData.map((value, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                width: 40,
-                height: value,
-                borderRadius: 1,
-                background: "linear-gradient(180deg, #32d3ff 0%, #008cff 100%)",
-                opacity: idx === dummyChartData.length - 1 ? 1 : 0.4,
-                transition: "0.3s",
-              }}
-            />
-          ))}
+          {profitData.map((item, idx) => {
+            const isSelected = selected.Date === item.Date;
+
+            const HEIGHT_SCALE = 0.6;
+
+            const barHeight =
+              (Math.abs(item.Amount) / maxAmount) * 100 * HEIGHT_SCALE + 20;
+
+            return (
+              <Box
+                key={idx}
+                onClick={() => handleBarClick(item)}
+                sx={{
+                  width: 72,
+                  height: barHeight,
+                  borderRadius: "10px 10px 0 0",
+                  backgroundColor: "#14B0B8",
+                  opacity: isSelected ? 1 : 0.5, // selected = full; others = light
+                  cursor: "pointer",
+                  transition: "0.2s",
+                  transform: isSelected ? "scale(1.05)" : "scale(1)",
+                }}
+              />
+            );
+          })}
         </Stack>
+
+        {/* FOOTER */}
         <Stack direction="row" justifyContent="space-between" sx={{ mt: 2 }}>
           <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
             Last 7 Days
           </Typography>
 
           <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-            Stable Growth
+            {selected.Amount >= 0 ? "Positive" : "Negative"} Day
           </Typography>
         </Stack>
       </Box>

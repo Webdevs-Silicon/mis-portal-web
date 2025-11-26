@@ -3,8 +3,13 @@ import LinearGradientBackground from "../../components/LinearGradientBackground"
 import ProfileHeader from "../../components/dashboard/ProfileHeader";
 import PerformanceOverview from "../../components/dashboard/PerformanceOverview";
 import PerformanceSection from "../../components/dashboard/PerformanceSection";
+import { useLoginData } from "../../hooks/useLoginData";
+import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
 
 function Dashboard() {
+  const { name, photo, lastLogin } = useLoginData();
+  const { profitNLoss, fluid, loading, error } = usePerformanceOverview();
+
   const dummyPerformance = {
     profit: 1850000,
     change: "0.55",
@@ -31,8 +36,8 @@ function Dashboard() {
             mt: "-30px",
           }}
         >
-          <ProfileHeader name={"name"} imageUrl={""} lastLogin={"today"} />
-          <PerformanceOverview data={dummyPerformance} />
+          <ProfileHeader name={name} imageUrl={photo} lastLogin={lastLogin} />
+          <PerformanceOverview profitData={profitNLoss} />
         </LinearGradientBackground>
       </Box>
 

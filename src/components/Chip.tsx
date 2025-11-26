@@ -8,7 +8,11 @@ type ChipProps = {
 };
 
 export default function Chip({ isPositive, text }: ChipProps) {
-  const icon = isPositive ? <TrendingUpIcon /> : <TrendingDownIcon />;
+  const icon = isPositive ? (
+    <TrendingUpIcon height={14} width={14} />
+  ) : (
+    <TrendingDownIcon height={14} width={14} />
+  );
   const color = isPositive ? "#379B50" : "#FFFFFF";
   const backgroundColor = isPositive ? "#E9FCEE" : "#DF5F5F";
 
@@ -18,7 +22,7 @@ export default function Chip({ isPositive, text }: ChipProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        gap: 0.5,
+        gap: 0.3,
         width: 65,
         height: 26,
         borderRadius: "20px",

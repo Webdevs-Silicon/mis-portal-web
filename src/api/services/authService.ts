@@ -25,6 +25,26 @@ export interface ResendOTPResponse {
   TokenNo: string;
 }
 
+// ----------------- LOGIN RESPONSE -----------------
+
+export interface LoginResponseHeader {
+  RC: string;
+  TokenNo: string;
+}
+
+export interface DirectorDetail {
+  Name?: string;
+  Photo?: string;
+  Date?: string;
+}
+
+export interface LoginResponse {
+  Header: LoginResponseHeader;
+  DirectorDetails: DirectorDetail[];
+}
+
+// ----------------- API FUNCTIONS -----------------
+
 export const fetchBankLogo = async (): Promise<string | null> => {
   const response = await apiClient.get<BankLogoResponse>("/", {
     params: {
@@ -60,5 +80,15 @@ export const resendOtp = async (
     },
   });
 
+  return response.data;
+};
+
+export const loginDetails = async (): Promise<LoginResponse> => {
+  const response = await apiClient.get<LoginResponse>("/", {
+    params: {
+      RequestID: "LogIn",
+      TokenNo: 0,
+    },
+  });
   return response.data;
 };
