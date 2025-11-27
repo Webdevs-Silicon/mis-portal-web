@@ -22,7 +22,6 @@ export function useLoginData(): LoginData {
     const fetchLogin = async () => {
       try {
         const response = await loginDetails();
-        console.log("response: ", response);
 
         setData({
           name: response.DirectorDetails[0]?.Name ?? "",

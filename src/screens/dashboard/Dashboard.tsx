@@ -8,13 +8,8 @@ import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
 
 function Dashboard() {
   const { name, photo, lastLogin } = useLoginData();
-  const { profitNLoss, fluid, loading, error } = usePerformanceOverview();
-
-  const dummyPerformance = {
-    profit: 1850000,
-    change: "0.55",
-    trend: "up",
-  } as const;
+  const { profitNLoss, fluid, workingCapital, overDue, ldr, loading, error } =
+    usePerformanceOverview();
 
   return (
     <Box
@@ -54,7 +49,14 @@ function Dashboard() {
           zIndex: 2,
         }}
       >
-        <PerformanceSection />
+        <PerformanceSection
+          fluidData={fluid}
+          workingCapitalData={workingCapital}
+          overDueData={overDue}
+          ldrData={ldr}
+          loading={loading}
+          error={error}
+        />
       </Box>
     </Box>
   );
