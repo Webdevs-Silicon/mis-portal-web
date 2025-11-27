@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Skeleton, Alert } from "@mui/material";
 import InfoCard from "../InfoCard";
 import FluidIcon from "../../assets/icons/fluidIcon.svg?react";
 import CalendarIcon from "../../assets/icons/calendarIcon.svg?react";
@@ -7,15 +7,76 @@ import PercentIcon from "../../assets/icons/percentIcon.svg?react";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState } from "react";
 import PerformancePopUp from "../popup/PerformancePopUp";
+import type {
+  LDRDetail,
+  OverDueDetail,
+  OverviewItem,
+} from "../../api/services/performanceService";
+import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
-export default function PerformanceSection() {
+interface PerformanceSectionProps {
+  fluidData: OverviewItem[];
+  workingCapitalData: OverviewItem[];
+  overDueData: OverDueDetail[];
+  ldrData: LDRDetail[];
+  loading: boolean;
+  error: string | null;
+}
+
+function extractAmounts<T extends { Amount?: number }>(data: T[]) {
+  return data.map((item) => item.Amount ?? 0);
+}
+
+export default function PerformanceSection({
+  fluidData,
+  workingCapitalData,
+  overDueData,
+  ldrData,
+  loading = true,
+  error,
+}: PerformanceSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const handleClosePopup = () => setActivePopup(null);
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mb: 2 }}>
+        {error || "Failed to load performance data."}
+      </Alert>
+    );
+  }
 
-  const handleMorePerformance = async () => {
-    setActivePopup("PerformancePopUp");
-  };
+  if (loading) {
+    return (
+      <Box>
+        <InfoCardSkeleton rows={2} />
+
+        <Skeleton
+          variant="rounded"
+          height={45}
+          width="100%"
+          sx={{ borderRadius: 2, mt: 2 }}
+        />
+      </Box>
+    );
+  }
+
+  const fluidAmounts = extractAmounts(fluidData);
+  const wcAmounts = extractAmounts(workingCapitalData);
+
+  const overduePercentages = overDueData.map((d) => d.ODPercentage);
+  const ldrPercentages = ldrData.map((d) => d.LDRPercentage);
+
+  const fluidChange = fluidData.map((d) => d.Percentage ?? 0);
+  const workingCapitalChange = workingCapitalData.map((d) => d.Percentage ?? 0);
+  const overdueChange = overDueData.map((d) => d.Percentage ?? 0);
+  const ldrChange = ldrData.map((d) => d.Percentage ?? 0);
+
+  const latestFluid = fluidData.at(-1)?.Amount ?? 0;
+  const latestWC = workingCapitalData.at(-1)?.Amount ?? 0;
+  const latestOverdue = overDueData.at(-1)?.ODPercentage ?? 0;
+  const latestLDR = ldrData.at(-1)?.LDRPercentage ?? 0;
+
+  const handleClosePopup = () => setActivePopup(null);
 
   return (
     <Box>
@@ -24,13 +85,12 @@ export default function PerformanceSection() {
         <InfoCard
           data={{
             title: "Fluid Resources",
-            value: 12580000,
+            value: latestFluid,
             valueType: "currency",
-            change: 0.39,
-            trend: "up",
+            change: fluidChange,
             icon: <FluidIcon />,
             showBarGraph: true,
-            barValues: [0.4, 0.5, 0.45, 0.6, 0.55, 0.4, 1],
+            barValues: fluidAmounts,
             primaryAccentColor: "#6DC1FF",
             secondaryAccentColor: "#6dc2ff36",
           }}
@@ -38,14 +98,13 @@ export default function PerformanceSection() {
 
         <InfoCard
           data={{
-            title: "Growth Rate",
-            value: 6.4,
-            valueType: "percentage",
-            change: -0.25,
-            trend: "down",
+            title: "Working Capital",
+            value: latestWC,
+            valueType: "currency",
+            change: workingCapitalChange,
             icon: <CalendarIcon />,
             showBarGraph: true,
-            barValues: [0.4, 0.5, 0.45, 0.6, 0.55, 0.4, 1],
+            barValues: wcAmounts,
             primaryAccentColor: "#BD8BFD",
             secondaryAccentColor: "#bc8bfd3d",
           }}
@@ -56,14 +115,13 @@ export default function PerformanceSection() {
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
           data={{
-            title: "Fluid Resources",
-            value: 12580000,
-            valueType: "currency",
-            change: 0.35,
-            trend: "up",
+            title: "Overdue %",
+            value: latestOverdue,
+            valueType: "percentage",
+            change: overdueChange,
             icon: <ValetIcon />,
             showBarGraph: true,
-            barValues: [0.4, 0.5, 0.45, 0.6, 0.55, 0.4, 1],
+            barValues: overduePercentages,
             primaryAccentColor: "#FDB176",
             secondaryAccentColor: "#fdb07633",
           }}
@@ -71,27 +129,24 @@ export default function PerformanceSection() {
 
         <InfoCard
           data={{
-            title: "Growth Rate",
-            value: 6.4,
+            title: "LDR %",
+            value: latestLDR,
             valueType: "percentage",
-            change: -0.25,
-            trend: "down",
+            change: ldrChange,
             icon: <PercentIcon />,
             showBarGraph: true,
-            barValues: [0.4, 0.5, 0.45, 0.6, 0.55, 0.4, 1],
+            barValues: ldrPercentages,
             primaryAccentColor: "#f7ed65ff",
             secondaryAccentColor: "#f7ed6550",
           }}
         />
       </Box>
 
-      {/* View More Button */}
       <ViewMoreButton
         title="View Performance Details"
-        onPress={handleMorePerformance}
+        onPress={() => setActivePopup("PerformancePopUp")}
       />
 
-      {/* Render Popup */}
       {activePopup === "PerformancePopUp" && (
         <PerformancePopUp open={true} onClose={handleClosePopup} />
       )}
