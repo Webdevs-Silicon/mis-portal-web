@@ -10,6 +10,17 @@ export interface OverviewItem {
   Percentage: number;
 }
 
+export interface OverDueDetail {
+  Date: string;
+  ODPercentage: number;
+  Percentage: number;
+}
+export interface LDRDetail {
+  Date: string;
+  LDRPercentage: number;
+  Percentage: number;
+}
+
 export interface GetPerformanceOverviewResponse {
   Header: {
     RC: string;
@@ -25,6 +36,29 @@ export interface GetFluidOverviewResponse {
   };
   FluidDetails: OverviewItem[];
 }
+
+export interface GetWorkingCapitalOverviewResponse {
+  Header: {
+    RC: string;
+    TokenNo: string;
+  };
+  WorkingCapital: OverviewItem[];
+}
+export interface GetOverdueOverviewResponse {
+  Header: {
+    RC: string;
+    TokenNo: string;
+  };
+  OverDueDetails: OverDueDetail[];
+}
+export interface GetLDROverviewResponse {
+  Header: {
+    RC: string;
+    TokenNo: string;
+  };
+  LDRDetails: LDRDetail[];
+}
+
 // ===========================
 // Common interfaces
 export interface SummaryHeader {
@@ -115,6 +149,41 @@ export const getFluidOverview = async (): Promise<GetFluidOverviewResponse> => {
   };
 
   const res = await apiClient.get<GetFluidOverviewResponse>("/", {
+    params,
+  });
+  return res.data;
+};
+
+export const getWorkingCapitalOverview =
+  async (): Promise<GetWorkingCapitalOverviewResponse> => {
+    const params: GetPerformanceOverviewRequest = {
+      RequestID: "WorkingCapital",
+    };
+
+    const res = await apiClient.get<GetWorkingCapitalOverviewResponse>("/", {
+      params,
+    });
+    return res.data;
+  };
+
+export const getOverDueOverview =
+  async (): Promise<GetOverdueOverviewResponse> => {
+    const params: GetPerformanceOverviewRequest = {
+      RequestID: "OverDue",
+    };
+
+    const res = await apiClient.get<GetOverdueOverviewResponse>("/", {
+      params,
+    });
+    return res.data;
+  };
+
+export const getLdrOverview = async (): Promise<GetLDROverviewResponse> => {
+  const params: GetPerformanceOverviewRequest = {
+    RequestID: "LDR",
+  };
+
+  const res = await apiClient.get<GetLDROverviewResponse>("/", {
     params,
   });
   return res.data;
