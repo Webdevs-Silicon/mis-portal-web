@@ -1,4 +1,5 @@
 import { VictoryPie } from "victory";
+import { formatCurrency } from "../utils/performanceDataTransformer";
 
 type PieChartItem = {
   label: string;
@@ -20,14 +21,14 @@ type PieChartProps = {
 
 export default function DonutChart({
   data,
-  width = 300,
+  width = 170,
   height = 300,
   radius = 50,
   innerRadius = 80,
   cornerRadius = 6,
   padAngle = 4,
   centerTitle = "Total Loans",
-  centerValue = "₹ 360.1L",
+  centerValue,
 }: PieChartProps) {
   // Transform data to Victory's expected format
   const victoryData = data.map((item) => ({
@@ -82,7 +83,7 @@ export default function DonutChart({
             color: "#000",
           }}
         >
-          {centerValue}
+          {formatCurrency(Number(centerValue))}
         </div>
       </div>
     </div>
