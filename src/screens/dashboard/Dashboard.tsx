@@ -5,6 +5,7 @@ import PerformanceOverview from "../../components/dashboard/PerformanceOverview"
 import PerformanceSection from "../../components/dashboard/PerformanceSection";
 import { useLoginData } from "../../hooks/useLoginData";
 import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
+import LoansOverviewSection from "../../components/dashboard/LoansOverviewSection";
 
 function Dashboard() {
   const { name, photo, lastLogin } = useLoginData();
@@ -57,6 +58,7 @@ function Dashboard() {
           loading={loading}
           error={error}
         />
+        <LoansOverviewSection />
       </Box>
     </Box>
   );
