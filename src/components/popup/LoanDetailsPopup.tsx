@@ -55,7 +55,8 @@ const OD_COLORS = {
     balanceText: 'black',
   },
   POOR: {
-    text: '#CD4444',
+    // text: '#CD4444',
+    text: '#ffffffff',
     background: '#DF5F5F',
     balanceText: '#CD4444',
   },
