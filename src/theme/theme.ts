@@ -64,6 +64,7 @@ export const sizes = {
   small: 12,
   base: 14,
   medium: 16,
+  medimLarge: 18,
   large: 24,
   extraLarge: 32,
   padding: 24,

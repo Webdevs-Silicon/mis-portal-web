@@ -5,11 +5,19 @@ import PerformanceOverview from "../../components/dashboard/PerformanceOverview"
 import PerformanceSection from "../../components/dashboard/PerformanceSection";
 import { useLoginData } from "../../hooks/useLoginData";
 import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
+import LoansOverviewSection from "../../components/dashboard/LoansOverviewSection";
+import { useLoanSummary } from "../../hooks/useLoanSummary";
 
 function Dashboard() {
   const { name, photo, lastLogin } = useLoginData();
   const { profitNLoss, fluid, workingCapital, overDue, ldr, loading, error } =
     usePerformanceOverview();
+  const {
+    classificationData,
+    loanSummaryData,
+    loanSummaryLoading,
+    loanSummaryError,
+  } = useLoanSummary();
 
   return (
     <Box
@@ -56,6 +64,12 @@ function Dashboard() {
           ldrData={ldr}
           loading={loading}
           error={error}
+        />
+        <LoansOverviewSection
+          loanOverviewData={loanSummaryData}
+          loanClassificationData={classificationData}
+          loading={loanSummaryLoading}
+          error={loanSummaryError}
         />
       </Box>
     </Box>

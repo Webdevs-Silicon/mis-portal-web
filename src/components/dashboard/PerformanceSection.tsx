@@ -79,7 +79,7 @@ export default function PerformanceSection({
   const handleClosePopup = () => setActivePopup(null);
 
   return (
-    <Box>
+    <Box sx={{ marginBottom: 2 }}>
       {/* Row 1 */}
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
