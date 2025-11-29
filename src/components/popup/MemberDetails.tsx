@@ -9,6 +9,7 @@ import {
   Slide, // Added Slide
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+// import { getMemberDetails } from '../../api/services/memberService';
 
 interface MemberDetailsProps {
   onClose: () => void;
