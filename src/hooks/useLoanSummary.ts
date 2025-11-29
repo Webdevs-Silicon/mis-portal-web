@@ -4,12 +4,11 @@ import {
   type GetLoanSummaryResponse,
 } from "../api/services/loanService";
 
-// Final dashboard format for UI components (table, pie chart, info cards)
 export interface LoanClassDashboardItem {
   label: string;
   amount: number;
   percent: number;
-  percentage: number; // trend %
+  percentage: number;
 }
 
 export interface LoanSummaryItem {
@@ -37,36 +36,19 @@ export function useLoanSummary() {
         const response = await getLoanSummary();
         setData(response);
 
-        const cls = response.LoanClass;
+        const loanClass = response.LoanClass;
 
-        setLoanSummaryData(response.LoanClass.Main);
+        setLoanSummaryData(loanClass.Main);
 
-        const formatted: LoanClassDashboardItem[] = [
-          {
-            label: "Standard",
-            amount: cls.Standard.Amount,
-            percent: cls.Standard.Percent,
-            percentage: cls.Standard.Percentage,
-          },
-          {
-            label: "Sub Standard",
-            amount: cls.SubStandard.Amount,
-            percent: cls.SubStandard.Percent,
-            percentage: cls.SubStandard.Percentage,
-          },
-          {
-            label: "Doubtful",
-            amount: cls.Doubtful.Amount,
-            percent: cls.Doubtful.Percent,
-            percentage: cls.Doubtful.Percentage,
-          },
-          {
-            label: "Bad",
-            amount: cls.Bad.Amount,
-            percent: cls.Bad.Percent,
-            percentage: cls.Bad.Percentage,
-          },
-        ];
+        // Dynamic extraction of all keys except "Main"
+        const formatted: LoanClassDashboardItem[] = Object.entries(loanClass)
+          .filter(([key]) => key !== "Main" || "main") // skip "Main"
+          .map(([key, value]) => ({
+            label: value.TypeName ?? key, // use TypeName if exists
+            amount: value.Amount ?? 0,
+            percent: value.Percent ?? 0,
+            percentage: value.Percentage ?? 0,
+          }));
 
         setClassificationData(formatted);
       } catch (err: any) {
@@ -82,8 +64,8 @@ export function useLoanSummary() {
   return {
     loanSummaryLoading,
     loanSummaryError,
-    data, // raw API response (Header + LoanClass)
+    data,
     loanSummaryData,
-    classificationData, // formatted list for charts and tables
+    classificationData,
   };
 }

@@ -8,16 +8,16 @@ import ChartTable from "../ChartTable";
 import type { Column } from "../ChartTable";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState, useMemo } from "react";
-import LoanDetailsPopup from "../popup/LoanDetailsPopup";
+import DepositDetailsPopup from "../popup/DepositDetailsPopup";
 import type {
-  LoanSummaryItem,
-  LoanClassDashboardItem,
-} from "../../hooks/useLoanSummary";
+  DepositSummaryItem,
+  DepositClassDashboardItem,
+} from "../../hooks/useDepositSummary";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
-interface LoansOverviewSectionProps {
-  loanOverviewData: LoanSummaryItem | null;
-  loanClassificationData: LoanClassDashboardItem[];
+interface DepositOverviewSectionProps {
+  depositOverviewData: DepositSummaryItem | null;
+  depositClassificationData: DepositClassDashboardItem[];
   loading?: boolean;
   error?: string | null;
 }
@@ -42,15 +42,15 @@ const getRandomColors = (count: number): string[] => {
   return shuffled.slice(0, count);
 };
 
-export default function LoansOverviewSection({
-  loanOverviewData,
-  loanClassificationData,
+export default function DepositOverviewSection({
+  depositOverviewData,
+  depositClassificationData,
   loading,
   error,
-}: LoansOverviewSectionProps) {
+}: DepositOverviewSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const filteredClassification = loanClassificationData.filter(
+  const filteredClassification = depositClassificationData.filter(
     (item) => item.label.toLowerCase() !== "main"
   );
 
@@ -85,7 +85,7 @@ export default function LoansOverviewSection({
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
-        {error || "Failed to load loan details."}
+        {error || "Failed to load deposit data."}
       </Alert>
     );
   }
@@ -114,15 +114,15 @@ export default function LoansOverviewSection({
           mb: 2,
         }}
       >
-        Loans Overview
+        Deposit Overview
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
           data={{
             title: "Total Loans",
-            value: Number(loanOverviewData?.Total) ?? "0",
+            value: Number(depositOverviewData?.Total) ?? "0",
             valueType: "currency",
-            change: [loanOverviewData?.Percentage ?? 0],
+            change: [depositOverviewData?.Percentage ?? 0],
             icon: <StackIcon />,
             showBarGraph: false,
             primaryAccentColor: "#BD8BFD",
@@ -132,9 +132,9 @@ export default function LoansOverviewSection({
         <InfoCard
           data={{
             title: "Avg. Interest Rate",
-            value: loanOverviewData?.Int ?? 0,
+            value: depositOverviewData?.Int ?? 0,
             valueType: "percentage",
-            change: [loanOverviewData?.IntPercentage ?? 0],
+            change: [depositOverviewData?.IntPercentage ?? 0],
             icon: <InterestIcon />,
             showBarGraph: false,
             primaryAccentColor: "#FDB176",
@@ -159,7 +159,7 @@ export default function LoansOverviewSection({
             fontWeight: 600,
           }}
         >
-          Loan Classification
+          Deposit Classification
         </Typography>
         <Typography
           sx={{
@@ -169,7 +169,7 @@ export default function LoansOverviewSection({
             color: colors.gray,
           }}
         >
-          Distribution by asset quality
+          Distribution by deposit type
         </Typography>
         <Box
           sx={{
@@ -183,7 +183,8 @@ export default function LoansOverviewSection({
         >
           <DonutChart
             data={donutData}
-            centerValue={loanOverviewData?.Total ?? "0"}
+            centerValue={depositOverviewData?.Total ?? "0"}
+            centerTitle="Total Deposits"
           />
         </Box>
         <ChartTable
@@ -193,11 +194,11 @@ export default function LoansOverviewSection({
         />
       </Box>
       <ViewMoreButton
-        title="View Loan Details"
-        onPress={() => setActivePopup("LoanDetailsPopUp")}
+        title="View Deposit Details"
+        onPress={() => setActivePopup("DepositDetailsPopUp")}
       />
-      {activePopup === "LoanDetailsPopUp" && (
-        <LoanDetailsPopup open={true} onClose={handleClosePopup} />
+      {activePopup === "DepositDetailsPopUp" && (
+        <DepositDetailsPopup open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );

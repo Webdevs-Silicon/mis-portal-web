@@ -57,12 +57,13 @@ export default function ChartTable({
                               borderRadius: "50%",
                               backgroundColor: row.color,
                               flexShrink: 0,
+                              marginLeft: "-10px",
                             }}
                           />
                           <Box>
                             <Typography
                               fontWeight={600}
-                              sx={{ whiteSpace: "nowrap" }}
+                              sx={{ whiteSpace: "nowrap", fontSize: 14 }}
                             >
                               {row.label}
                             </Typography>
@@ -87,7 +88,7 @@ export default function ChartTable({
                       // Default: Text with conditional color
                       <Typography
                         sx={{
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: 600,
                           whiteSpace: "nowrap",
                           color: isNegative ? "#EF4444" : "inherit",

@@ -7,6 +7,12 @@ import { useLoginData } from "../../hooks/useLoginData";
 import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
 import LoansOverviewSection from "../../components/dashboard/LoansOverviewSection";
 import { useLoanSummary } from "../../hooks/useLoanSummary";
+import { useDepositSummary } from "../../hooks/useDepositSummary";
+import { useAssetSummary } from "../../hooks/useAssetSummary";
+import { useBorrowings } from "../../hooks/useBorrowingSummary";
+import DepositOverviewSection from "../../components/dashboard/DepositOverviewSection";
+import AssetOverviewSection from "../../components/dashboard/AssetOverviewSection";
+import BorrowingSection from "../../components/dashboard/BorrowingSection";
 
 function Dashboard() {
   const { name, photo, lastLogin } = useLoginData();
@@ -18,6 +24,19 @@ function Dashboard() {
     loanSummaryLoading,
     loanSummaryError,
   } = useLoanSummary();
+  const {
+    depositClassificationData,
+    depositSummaryData,
+    depositSummaryError,
+    depositSummaryLoading,
+  } = useDepositSummary();
+  const {
+    assetClassificationData,
+    assetSummaryData,
+    assetSummaryError,
+    assetSummaryLoading,
+  } = useAssetSummary();
+  const { borrowData, borrowLoading, borrowError } = useBorrowings();
 
   return (
     <Box
@@ -70,6 +89,23 @@ function Dashboard() {
           loanClassificationData={classificationData}
           loading={loanSummaryLoading}
           error={loanSummaryError}
+        />
+        <DepositOverviewSection
+          depositOverviewData={depositSummaryData}
+          depositClassificationData={depositClassificationData}
+          loading={depositSummaryLoading}
+          error={depositSummaryError}
+        />
+        <AssetOverviewSection
+          assetOverviewData={assetSummaryData}
+          assetClassificationData={assetClassificationData}
+          loading={assetSummaryLoading}
+          error={assetSummaryError}
+        />
+        <BorrowingSection
+          borrowingOverviewData={borrowData}
+          loading={borrowLoading}
+          error={borrowError}
         />
       </Box>
     </Box>
