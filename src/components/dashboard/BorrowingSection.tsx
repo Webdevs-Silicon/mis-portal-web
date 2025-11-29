@@ -44,7 +44,7 @@ export default function BorrowingSection({
     <Box>
       <Typography
         sx={{
-          fontSize: sizes.medimLarge,
+          fontSize: sizes.mediumLarge,
           fontWeight: 600,
           mb: 2,
         }}

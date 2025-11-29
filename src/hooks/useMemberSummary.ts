@@ -51,7 +51,7 @@ export function useMemberSummary() {
           memberDetails
         )
           .filter(([key]) => key !== "Main") // skip Main
-          .map(([key, value]) => {
+          .map(([, value]) => {
             const item = value as MemberClassDetails;
             return {
               label: item.Class,
