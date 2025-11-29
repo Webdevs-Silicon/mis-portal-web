@@ -1,4 +1,3 @@
-// src/api/services/eventService.ts
 import apiClient from "../client/apiClient";
 
 export interface EventRequest {
@@ -28,13 +27,34 @@ export interface GetAllEventResponse {
   EventDetails: EventDetails[];
 }
 
+export interface LatestEvent {
+  ScheduleDate: string;
+  Heading: string;
+  Subject: string;
+  Time: string;
+  Duration: string;
+  Address: string;
+}
+
+export interface GetLatestEventResponse {
+  Header: SummaryHeader;
+  LatestEvent: LatestEvent;
+}
+
 export const getAllEvent = async (): Promise<GetAllEventResponse> => {
   const params: EventRequest = {
-    RequestID: "AllEvent"
+    RequestID: "AllEvent",
   };
 
-  const res = await apiClient.get<GetAllEventResponse>("/", {
-    params,
-  });
+  const res = await apiClient.get<GetAllEventResponse>("/", { params });
+  return res.data;
+};
+
+export const getLatestEvent = async (): Promise<GetLatestEventResponse> => {
+  const params: EventRequest = {
+    RequestID: "Event",
+  };
+
+  const res = await apiClient.get<GetLatestEventResponse>("/", { params });
   return res.data;
 };

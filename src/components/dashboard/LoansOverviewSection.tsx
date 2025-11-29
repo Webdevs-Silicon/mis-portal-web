@@ -92,7 +92,7 @@ export default function LoansOverviewSection({
 
   if (loading) {
     return (
-      <Box>
+      <Box marginTop={2}>
         <InfoCardSkeleton rows={1} />
 
         <Skeleton

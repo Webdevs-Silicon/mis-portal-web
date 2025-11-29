@@ -1,5 +1,5 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
-import { colors, sizes } from "../../theme/theme";
+import { sizes } from "../../theme/theme";
 import StackIcon from "../../assets/icons/stackIcon.svg?react";
 import InterestIcon from "../../assets/icons/interestIcon.svg?react";
 import InfoCard from "../InfoCard";
@@ -27,7 +27,7 @@ export default function BorrowingSection({
 
   if (loading) {
     return (
-      <Box>
+      <Box marginTop={2}>
         <InfoCardSkeleton rows={1} />
 
         <Skeleton

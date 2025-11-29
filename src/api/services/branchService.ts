@@ -22,12 +22,33 @@ export interface GetAllBranchResponse {
   MemberDetails: BranchDetails[];
 }
 
+export interface BranchNStaff {
+  Branch: string;
+  Staff: number;
+}
+
+export interface GetBranchDetailsResponse {
+  Header: SummaryHeader;
+  BranchNStaff: BranchNStaff;
+}
+
 export const getAllBranch = async (): Promise<GetAllBranchResponse> => {
   const params: BranchRequest = {
-    RequestID: "AllBranch"
+    RequestID: "AllBranch",
   };
 
   const res = await apiClient.get<GetAllBranchResponse>("/", {
+    params,
+  });
+  return res.data;
+};
+
+export const getBranchDetails = async (): Promise<GetBranchDetailsResponse> => {
+  const params: BranchRequest = {
+    RequestID: "Branch",
+  };
+
+  const res = await apiClient.get<GetBranchDetailsResponse>("/", {
     params,
   });
   return res.data;

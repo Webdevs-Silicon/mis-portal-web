@@ -1,23 +1,23 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { colors, sizes } from "../../theme/theme";
 import StackIcon from "../../assets/icons/stackIcon.svg?react";
-import InterestIcon from "../../assets/icons/interestIcon.svg?react";
+import MemberIcon from "../../assets/icons/memberIcon.svg?react";
 import InfoCard from "../InfoCard";
 import DonutChart from "../DonutChart";
 import ChartTable from "../ChartTable";
 import type { Column } from "../ChartTable";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState, useMemo } from "react";
-import CashInvestmentsDetailsPopup from "../popup/CashInvestmentsDetailsPopup";
-import type {
-  AssetSummaryItem,
-  AssetClassDashboardItem,
-} from "../../hooks/useAssetSummary";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
+import type {
+  MemberClassDashboardItem,
+  MemberSummaryItem,
+} from "../../hooks/useMemberSummary";
+import MemberDetails from "../popup/MemberDetails";
 
-interface AssetOverviewSectionProps {
-  assetOverviewData: AssetSummaryItem | null;
-  assetClassificationData: AssetClassDashboardItem[];
+interface MemberOverviewSectionProps {
+  memberOverviewData: MemberSummaryItem | null;
+  memberClassificationData: MemberClassDashboardItem[];
   loading?: boolean;
   error?: string | null;
 }
@@ -42,15 +42,15 @@ const getRandomColors = (count: number): string[] => {
   return shuffled.slice(0, count);
 };
 
-export default function AssetOverviewSection({
-  assetOverviewData,
-  assetClassificationData,
+export default function MemberOverviewSection({
+  memberOverviewData,
+  memberClassificationData,
   loading,
   error,
-}: AssetOverviewSectionProps) {
+}: MemberOverviewSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const filteredClassification = assetClassificationData.filter(
+  const filteredClassification = memberClassificationData.filter(
     (item) => item.label.toLowerCase() !== "main"
   );
 
@@ -68,15 +68,15 @@ export default function AssetOverviewSection({
 
   const columns: Column[] = [
     { key: "label", type: "label" },
-    { key: "amount", type: "text", align: "right" },
-    { key: "change", type: "chip", align: "right" },
+    { key: "stats", type: "memberStats", align: "right" }, // custom renderer
   ];
 
   const chartTableData = filteredClassification.map((item, index) => ({
     label: item.label,
     percentage: `${item.percentage}%`,
-    amount: item.balance,
-    change: item.yesterdayPercentage,
+    memberCount: item.memberCount,
+    shareCapital: item.shareBalance, // ← Add this
+    change: item.percentage,
     color: randomColors[index],
   }));
 
@@ -85,7 +85,7 @@ export default function AssetOverviewSection({
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
-        {error || "Failed to load assets data."}
+        {error || "Failed to load deposit data."}
       </Alert>
     );
   }
@@ -114,31 +114,31 @@ export default function AssetOverviewSection({
           mb: 2,
         }}
       >
-        Cash & Investments
+        Members
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
           data={{
-            title: "Total Assets",
-            value: Number(assetOverviewData?.Total) ?? "0",
-            valueType: "currency",
-            change: [assetOverviewData?.Percentage ?? 0],
-            icon: <StackIcon />,
+            title: "Total Members",
+            value: Number(memberOverviewData?.Total) ?? "0",
+            valueType: "number",
+            change: [memberOverviewData?.Percentage ?? 0],
+            icon: <MemberIcon />,
             showBarGraph: false,
-            primaryAccentColor: "#BD8BFD",
-            secondaryAccentColor: "#bc8bfd3d",
+            primaryAccentColor: "#f7ed65ff",
+            secondaryAccentColor: "#f7ed6550",
           }}
         />
         <InfoCard
           data={{
-            title: "Avg. Interest Rate",
-            value: assetOverviewData?.Int ?? 0,
-            valueType: "percentage",
-            change: [assetOverviewData?.IntPercentage ?? 0],
-            icon: <InterestIcon />,
+            title: "Shared Capital",
+            value: memberOverviewData?.Balance ?? 0,
+            valueType: "currency",
+            change: [memberOverviewData?.BalPercentage ?? 0],
+            icon: <StackIcon />,
             showBarGraph: false,
-            primaryAccentColor: "#FDB176",
-            secondaryAccentColor: "#fdb07633",
+            primaryAccentColor: "#BD8BFD",
+            secondaryAccentColor: "#bc8bfd3d",
           }}
         />
       </Box>
@@ -159,7 +159,7 @@ export default function AssetOverviewSection({
             fontWeight: 600,
           }}
         >
-          Asset Classification
+          Member Classification
         </Typography>
         <Typography
           sx={{
@@ -169,7 +169,7 @@ export default function AssetOverviewSection({
             color: colors.gray,
           }}
         >
-          Cash, Bank Balance & Investments
+          Category wise distribution
         </Typography>
         <Box
           sx={{
@@ -183,7 +183,7 @@ export default function AssetOverviewSection({
         >
           <DonutChart
             data={donutData}
-            centerValue={assetOverviewData?.Total ?? "0"}
+            centerValue={String(memberOverviewData?.Total) ?? "0"}
             centerTitle="Total"
           />
         </Box>
@@ -194,11 +194,11 @@ export default function AssetOverviewSection({
         />
       </Box>
       <ViewMoreButton
-        title="View Cash & Investments Details"
-        onPress={() => setActivePopup("AssetDetailsPopUp")}
+        title="View Member Details"
+        onPress={() => setActivePopup("MemberDetailsPopUp")}
       />
-      {activePopup === "AssetDetailsPopUp" && (
-        <CashInvestmentsDetailsPopup open={true} onClose={handleClosePopup} />
+      {activePopup === "MemberDetailsPopUp" && (
+        <MemberDetails open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );
