@@ -6,13 +6,15 @@ import ValetIcon from "../../assets/icons/valetIcon.svg?react";
 import PercentIcon from "../../assets/icons/percentIcon.svg?react";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState } from "react";
-import PerformancePopUp from "../popup/PerformancePopUp";
+// import PerformancePopUp from "../popup/PerformancePopUp";
 import type {
   LDRDetail,
   OverDueDetail,
   OverviewItem,
 } from "../../api/services/performanceService";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
+// import DepositDetailsPopup from "../popup/DepositDetailsPopup";
+import CashInvestmentsDetailsPopup from "../popup/CashInvestmentsDetailsPopup";
 
 interface PerformanceSectionProps {
   fluidData: OverviewItem[];
@@ -148,7 +150,7 @@ export default function PerformanceSection({
       />
 
       {activePopup === "PerformancePopUp" && (
-        <PerformancePopUp open={true} onClose={handleClosePopup} />
+        <CashInvestmentsDetailsPopup open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );

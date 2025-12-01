@@ -1,32 +1,27 @@
-import React, { useState } from 'react';
+// src/components/popup/CashInvestmentsDetailsPopup.tsx
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
   IconButton, 
-  Modal, // Imported Modal for the dialog behavior
-  Slide // Imported Slide for the animation
+  Modal,
+  Slide 
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { 
+  getAssetPeriodWise, 
+  getCashBranchWise, 
+  getBankBranchWise, 
+  getInvestmentDetails 
+} from '../../api/services/assetService';
 
 // --- Types ---
-
 interface CashInvestmentsDetailsPopupProps {
   onClose: () => void;
-  open: boolean; // Added open prop for Modal control
+  open: boolean;
 }
 
 type ActiveTab = 'cash' | 'investments' | 'period' | 'banks';
-
-interface InvestmentRowData {
-  asset: string;
-  balance: string; // Balance in ₹L
-  growthVal: string; // Growth value (e.g., '+5.2')
-  growthPercent: string; // Growth percentage (e.g., '7.5%')
-  cagr: string;
-  growthColor?: string;
-  percentBg?: string;
-  percentColor?: string;
-}
 
 interface BankRowData {
   name: string;
@@ -42,8 +37,30 @@ interface PeriodRowData {
   totalGrowth: string;
 }
 
-// --- Constants & Styles ---
+interface CashRowData {
+  branch: string;
+  balance: string;
+}
 
+interface InvestmentRowData {
+  institution: string;
+  balance: string;
+  rate: string;
+}
+
+interface ApiData {
+  periodData: PeriodRowData[];
+  cashData: CashRowData[];
+  bankData: BankRowData[];
+  investmentsData: InvestmentRowData[];
+  totalCash: string;
+  totalBank: string;
+  totalInvestments: string;
+  averageBankRate: string;
+  averageInvestmentRate: string;
+}
+
+// --- Constants & Styles ---
 const COLORS = {
   primaryBlue: '#0068B5',
   textDark: '#101828',
@@ -57,7 +74,6 @@ const COLORS = {
 };
 
 // --- Helper Components ---
-
 const PercentageBadge: React.FC<{ value: string; type?: 'positive' | 'negative' }> = ({ value, type = 'positive' }) => {
   const isPositive = type !== 'negative';
   return (
@@ -86,56 +102,183 @@ const PercentageBadge: React.FC<{ value: string; type?: 'positive' | 'negative' 
   );
 };
 
-// --- Data ---
-const investmentData: InvestmentRowData[] = [
-  { asset: 'Mutual Funds', balance: '125.4', growthVal: '+12.8', growthPercent: '7.5%', cagr: '9.2%', growthColor: COLORS.textGreen, percentBg: COLORS.bgGreen, percentColor: COLORS.textGreen },
-  { asset: 'Stocks & Bonds', balance: '80.2', growthVal: '+5.2', growthPercent: '3.6%', cagr: '4.1%', growthColor: COLORS.primaryBlue, percentBg: '#EFF8FF', percentColor: '#175CD3' },
-  { asset: 'Real Estate', balance: '154.5', growthVal: '-8.5', growthPercent: '-2.1%', cagr: '5.8%', growthColor: COLORS.textRed, percentBg: COLORS.bgRed, percentColor: COLORS.textRed },
-  { asset: 'Alternative', balance: '45.8', growthVal: '+1.2', growthPercent: '1.2%', cagr: '2.5%', growthColor: '#B54708', percentBg: '#FFFAEB', percentColor: '#B54708' },
-];
-
-const bankData: BankRowData[] = [
-    { name: 'State Bank', balance: '28.5', rate: '28.5' }, // Assuming the second column is Rate % based on the header
-    { name: 'Union Bank', balance: '15.7', rate: '15.7' },
-    { name: 'Central Bank', balance: '12.3', rate: '12.3' },
-    { name: 'Regional Bank', balance: '8.4', rate: '8.4' },
-    { name: 'Cooperative Bank', balance: '3.3', rate: '3.3' },
-];
-
-const periodData: PeriodRowData[] = [
-    // Note: Data is duplicated/simplified for structure based on provided snippet
-    { period: 'Today', cash: '360.1', bank: '360.1', inv: '358.8', totalGrowth: '3.5%' },
-    { period: 'Yesterday', cash: '358.8', bank: '358.8', inv: '358.8', totalGrowth: '3.6%' },
-    { period: 'Last Month', cash: '358.8', bank: '358.8', inv: '358.8', totalGrowth: '3.6%' },
-    { period: 'Last Year', cash: '358.8', bank: '358.8', inv: '358.8', totalGrowth: '3.6%' },
-];
-
 // --- Layout Constants ---
-
-const investmentColWidths = {
-  asset: '120px',
-  balance: '80px',
-  growth: '80px',
-  percent: '80px',
-  cagr: '80px',
-};
-
 const bankColWidths = {
-    name: '140px',
-    balance: '80px',
-    rate: '80px',
+  name: '140px',
+  balance: '80px',
+  rate: '80px',
 };
 
-const minTableWidth = '500px'; 
+// const minTableWidth = '500px'; 
 
 // --- Main Component ---
-
 const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = ({ onClose, open }) => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('period'); // Default to Period as it's the first new tab
+  const [activeTab, setActiveTab] = useState<ActiveTab>('period');
+  const [apiData, setApiData] = useState<ApiData>({
+    periodData: [],
+    cashData: [],
+    bankData: [],
+    investmentsData: [],
+    totalCash: '0',
+    totalBank: '0',
+    totalInvestments: '0',
+    averageBankRate: '0',
+    averageInvestmentRate: '0'
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // --- API Calls - Fetch all data when modal opens ---
+  useEffect(() => {
+    const fetchAllData = async () => {
+      if (!open) return;
+      
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Fetch all APIs in parallel
+        const [periodResponse, cashResponse, bankResponse, investmentResponse] = await Promise.all([
+          getAssetPeriodWise(),
+          getCashBranchWise(),
+          getBankBranchWise(),
+          getInvestmentDetails()
+        ]);
+
+        // Process period data - CORRECTED
+        let periodData: PeriodRowData[] = [];
+        if (periodResponse.Header.RC === "0") {
+          const cashData = periodResponse.GrowthWise.find(item => item.TypeName === 'Cash');
+          const bankData = periodResponse.GrowthWise.find(item => item.TypeName === 'Bank');
+          const invData = periodResponse.GrowthWise.find(item => item.TypeName === 'INV');
+          const totalData = periodResponse.GrowthWise.find(item => item.TypeName === 'Total');
+          
+          periodData = [
+            {
+              period: 'Last Day',
+              cash: cashData ? (cashData.LastDayBal / 100000).toFixed(1) : '0',
+              bank: bankData ? (bankData.LastDayBal / 100000).toFixed(1) : '0',
+              inv: invData ? (invData.LastDayBal / 100000).toFixed(1) : '0',
+              totalGrowth: totalData ? `${((totalData.LastDayBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+            },
+            {
+              period: 'Last Month',
+              cash: cashData ? (cashData.LastMonthBal / 100000).toFixed(1) : '0',
+              bank: bankData ? (bankData.LastMonthBal / 100000).toFixed(1) : '0',
+              inv: invData ? (invData.LastMonthBal / 100000).toFixed(1) : '0',
+              totalGrowth: totalData ? `${((totalData.LastMonthBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+            },
+            {
+              period: 'Last Year',
+              cash: cashData ? (cashData.LastYearBal / 100000).toFixed(1) : '0',
+              bank: bankData ? (bankData.LastYearBal / 100000).toFixed(1) : '0',
+              inv: invData ? (invData.LastYearBal / 100000).toFixed(1) : '0',
+              totalGrowth: '0%'
+            },
+            {
+              period: 'Total',
+              cash: cashData ? (cashData.Total / 100000).toFixed(1) : '0',
+              bank: bankData ? (bankData.Total / 100000).toFixed(1) : '0',
+              inv: invData ? (invData.Total / 100000).toFixed(1) : '0',
+              totalGrowth: '0%'
+            }
+          ];
+        }
+
+        // Process cash data
+        let cashData: CashRowData[] = [];
+        let totalCash = '0';
+        if (cashResponse.Header.RC === "0") {
+          cashData = Object.entries(cashResponse.BranchWise)
+            .filter(([key]) => key !== 'Total')
+            .map(([_, data]) => ({
+              branch: data.BranchName,
+              balance: (data.Balance / 100000).toFixed(1)
+            }));
+          
+          totalCash = cashResponse.BranchWise.Total ? 
+            (cashResponse.BranchWise.Total.Balance / 100000).toFixed(1) : '0';
+        }
+
+        // Process bank data
+        let bankData: BankRowData[] = [];
+        let totalBank = '0';
+        let averageBankRate = '0';
+        if (bankResponse.Header.RC === "0") {
+          bankData = Object.entries(bankResponse.BankWise)
+            .filter(([key]) => key !== 'Total')
+            .map(([_, data]) => ({
+              name: data.BankName,
+              balance: (data.Balance / 100000).toFixed(1),
+              rate: `${data.IntRate}%`
+            }));
+          
+          totalBank = bankResponse.BankWise.Total ? 
+            (bankResponse.BankWise.Total.Balance / 100000).toFixed(1) : '0';
+          
+          // Calculate average interest rate
+          const banks = Object.entries(bankResponse.BankWise)
+            .filter(([key]) => key !== 'Total')
+            .map(([_, data]) => data);
+          
+          if (banks.length > 0) {
+            const avgRate = banks.reduce((sum, bank) => sum + bank.IntRate, 0) / banks.length;
+            averageBankRate = avgRate.toFixed(1);
+          }
+        }
+
+        // Process investment data
+        let investmentsData: InvestmentRowData[] = [];
+        let totalInvestments = '0';
+        let averageInvestmentRate = '0';
+        if (investmentResponse.Header.RC === "0") {
+          investmentsData = Object.entries(investmentResponse.INVWise)
+            .filter(([key]) => key !== 'Total')
+            .map(([_, data]) => ({
+              institution: data.INVName,
+              balance: (data.Balance / 100000).toFixed(1),
+              rate: `${data.IntRate}%`
+            }));
+          
+          totalInvestments = investmentResponse.INVWise.Total ? 
+            (investmentResponse.INVWise.Total.Balance / 100000).toFixed(1) : '0';
+          
+          // Calculate average interest rate
+          const investments = Object.entries(investmentResponse.INVWise)
+            .filter(([key]) => key !== 'Total')
+            .map(([_, data]) => data);
+          
+          if (investments.length > 0) {
+            const avgRate = investments.reduce((sum, inv) => sum + inv.IntRate, 0) / investments.length;
+            averageInvestmentRate = avgRate.toFixed(1);
+          }
+        }
+
+        setApiData({
+          periodData,
+          cashData,
+          bankData,
+          investmentsData,
+          totalCash,
+          totalBank,
+          totalInvestments,
+          averageBankRate,
+          averageInvestmentRate
+        });
+
+      } catch (err) {
+        setError('Failed to fetch data');
+        console.error('Error fetching asset data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, [open]);
 
   // --- Render Functions ---
-
-  const renderContentWrapper = (children: React.ReactNode, title: string, subtitle: React.ReactNode = null) => {
+  const renderContentWrapper = (children: React.ReactNode) => {
     return (
       <Box
         sx={{
@@ -147,26 +290,28 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
           boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
         }}
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            px: 2,
-            py: 1.5,
-            borderBottom: `1px solid ${COLORS.border}`,
-            bgcolor: '#fff',
-          }}
-        >
-          <Typography sx={{ fontSize: '14px', fontWeight: 600, color: COLORS.textDark }}>{title}</Typography>
-          {subtitle}
-        </Box>
         {children}
       </Box>
     );
   };
 
   const renderPeriodContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography>Loading period data...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
+    }
+
     const rowStyle = {
       display: 'grid',
       gridTemplateColumns: `repeat(5, 1fr)`,
@@ -176,212 +321,315 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
     };
 
     return (
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {renderContentWrapper(
-                <>
-                    {/* Table Header */}
-                    <Box sx={{ ...rowStyle, py: 1.5, bgcolor: '#fff' }}>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Period</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Cash (₹L)</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Bank (₹L)</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Inv. (₹L)</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textAlign: 'center' }}>Total</Typography>
-                    </Box>
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {renderContentWrapper(
+          <>
+            {/* Table Header */}
+            <Box sx={{ ...rowStyle, py: 1.5, bgcolor: '#fff' }}>
+              <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Period</Typography>
+              <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Cash (₹L)</Typography>
+              <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Bank (₹L)</Typography>
+              <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Inv. (₹L)</Typography>
+              <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textAlign: 'center' }}>Total</Typography>
+            </Box>
 
-                    {/* Table Rows */}
-                    {periodData.map((row) => (
-                        <Box key={row.period} sx={rowStyle}>
-                            <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>{row.period}</Typography>
-                            <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textDark, textAlign: 'center' }}>{row.cash}</Typography>
-                            <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textDark, textAlign: 'center' }}>{row.bank}</Typography>
-                            <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textDark, textAlign: 'center' }}>{row.inv}</Typography>
-                            <Box sx={{ textAlign: 'center' }}>
-                                <PercentageBadge value={row.totalGrowth} type={row.totalGrowth.includes('-') ? 'negative' : 'positive'} />
-                            </Box>
-                        </Box>
-                    ))}
+                    {apiData.periodData.map((row, index) => {
+          const isTotalRow = row.period === "Total";
+          const textColor = isTotalRow ? COLORS.primaryBlue : COLORS.textDark;
 
-                    {/* Footer Insight/Comment */}
-                    <Box sx={{ bgcolor: COLORS.bgGrey, px: 2, py: 1.5 }}>
-                        <Typography sx={{ fontSize: '12px', color: COLORS.textGrey, lineHeight: 1.5 }}>
-                            Current period highlighted • Growth of **15.6%** over last year.
-                        </Typography>
-                    </Box>
-                </>
-            , "Historical Overview")}
-        </Box>
+          return (
+            <Box key={index} sx={rowStyle}>
+              <Typography sx={{ fontSize: '13px', fontWeight: 500, color: textColor }}>
+                {row.period}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 500, color: textColor, textAlign: 'center' }}>
+                {row.cash}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 500, color: textColor, textAlign: 'center' }}>
+                {row.bank}
+              </Typography>
+              <Typography sx={{ fontSize: '13px', fontWeight: 500, color: textColor, textAlign: 'center' }}>
+                {row.inv}
+              </Typography>
+              <Box sx={{ textAlign: 'center' }}>
+                <PercentageBadge
+                  value={row.totalGrowth}
+                  type={row.totalGrowth.includes('-') ? 'negative' : 'positive'}
+                />
+              </Box>
+            </Box>
+          );
+        })}
+
+
+            {/* Footer Insight/Comment */}
+            <Box sx={{ bgcolor: COLORS.bgGrey, px: 2, py: 1.5 }}>
+              <Typography sx={{ fontSize: '12px', color: COLORS.textGrey, lineHeight: 1.5 }}>
+                Current period highlighted • Comprehensive asset performance analysis.
+              </Typography>
+            </Box>
+          </>
+        )}
+      </Box>
     );
   };
 
   const renderBanksContent = () => {
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography>Loading bank data...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
+    }
+
     const cellStyle = { flexShrink: 0, paddingRight: '8px' };
     
     return (
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {renderContentWrapper(
-                <Box sx={{ overflowX: 'auto', width: '100%' }}>
-                    <Box sx={{ minWidth: '350px' }}>
-                        
-                        {/* Table Header */}
-                        <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
-                            <Typography sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Bank Name</Typography>
-                            <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Balance (₹L)</Typography>
-                            <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Rate %</Typography>
-                        </Box>
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {renderContentWrapper(
+          <Box sx={{ overflowX: 'auto', width: '100%' }}>
+            <Box sx={{ minWidth: '350px' }}>
+              {/* Table Header */}
+              <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
+                <Typography sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Bank Name</Typography>
+                <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Balance (₹L)</Typography>
+                <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Rate %</Typography>
+              </Box>
 
-                        <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
-                            {bankData.map((row, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        px: 2,
-                                        py: 1.5,
-                                        borderBottom: `1px solid ${COLORS.border}`,
-                                        bgcolor: '#fff',
-                                    }}
-                                >
-                                    <Typography noWrap sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.name}</Typography>
-                                    <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.balance}</Typography>
-                                    <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.rate}</Typography>
-                                </Box>
-                            ))}
+              <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {apiData.bankData.map((row, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      bgcolor: '#fff',
+                    }}
+                  >
+                    <Typography noWrap sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.name}</Typography>
+                    <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.balance}</Typography>
+                    <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.rate}</Typography>
+                  </Box>
+                ))}
 
-                            {/* Total Row */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: COLORS.bgGrey }}>
-                                <Typography sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>Total</Typography>
-                                <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>68.2</Typography>
-                                <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>-</Typography>
-                            </Box>
-                        </Box>
-                    </Box>
+                {/* Total Row */}
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: COLORS.bgGrey }}>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>Total</Typography>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>{apiData.totalBank}</Typography>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>-</Typography>
                 </Box>
-            , "Bank Breakdown", (
-                <Typography sx={{ fontSize: '12px', fontWeight: 600, color: COLORS.textDark }}>
-                    Average Interest Rate: **3.5%**
-                </Typography>
-            ))}
-        </Box>
+
+                {/* Average Interest Rate */}
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: '#fff' }}>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.name, fontSize: '13px', fontWeight: 600, color: COLORS.textDark }}>
+                    Average Interest Rate:
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    {apiData.averageBankRate}%
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: bankColWidths.rate, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    -
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </Box>
     );
   };
 
   const renderCashContent = () => {
-    // Re-using simplified content from previous Cash tab
-    const rowStyle = {
-      display: 'grid',
-      gridTemplateColumns: '1.2fr 1fr 1fr 1fr',
-      alignItems: 'center',
-      padding: '12px 16px',
-      borderBottom: `1px solid ${COLORS.border}`,
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography>Loading cash data...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
+    }
+
+    const cellStyle = { flexShrink: 0, paddingRight: '8px' };
+    const cashColWidths = {
+      branch: '200px',
+      balance: '80px',
     };
 
     return (
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {renderContentWrapper(
-                <>
-                    {/* Table Header */}
-                    <Box sx={{ ...rowStyle, py: 1.5, bgcolor: '#fff' }}>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Category</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Balance (₹L)</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>Growth (MoM)</Typography>
-                        <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textAlign: 'center' }}>Rate (%)</Typography>
-                    </Box>
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {renderContentWrapper(
+          <Box sx={{ overflowX: 'auto', width: '100%' }}>
+            <Box sx={{ minWidth: '300px' }}>
+              {/* Table Header */}
+              <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
+                <Typography sx={{ ...cellStyle, width: cashColWidths.branch, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>
+                  Branch
+                </Typography>
+                <Typography sx={{ ...cellStyle, width: cashColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>
+                  Balance (₹L)
+                </Typography>
+              </Box>
 
-                    {/* Table Rows */}
-                    <Box sx={rowStyle}>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>Savings &amp; Current</Typography>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textDark, textAlign: 'center' }}>90.5</Typography>
-                        <Box sx={{ textAlign: 'center' }}><PercentageBadge value="+1.8%" /></Box>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}>0.5</Typography>
-                    </Box>
+              <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {apiData.cashData.map((row, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      bgcolor: '#fff',
+                    }}
+                  >
+                    <Typography noWrap sx={{ ...cellStyle, width: cashColWidths.branch, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>
+                      {row.branch}
+                    </Typography>
+                    <Typography sx={{ ...cellStyle, width: cashColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>
+                      {row.balance}
+                    </Typography>
+                  </Box>
+                ))}
 
-                    <Box sx={rowStyle}>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>Fixed Deposits</Typography>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textDark, textAlign: 'center' }}>210.8</Typography>
-                        <Box sx={{ textAlign: 'center' }}><PercentageBadge value="+3.5%" /></Box>
-                        <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.textGreen, textAlign: 'center' }}>6.5</Typography>
-                    </Box>
-                    
-                    {/* Footer Insight/Comment */}
-                    <Box sx={{ bgcolor: COLORS.bgGrey, px: 2, py: 1.5 }}>
-                        <Typography sx={{ fontSize: '12px', color: COLORS.textGrey, lineHeight: 1.5 }}>
-                            Fixed Deposits are performing well. Focus on growing Savings accounts.
-                        </Typography>
-                    </Box>
-                </>
-            , "Cash & Deposits", (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography sx={{ fontSize: '12px', color: COLORS.textGrey }}>Overall Growth</Typography>
-                    <PercentageBadge value="+2.1%" type="positive" />
+                {/* Total Row */}
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: COLORS.bgGrey }}>
+                  <Typography sx={{ ...cellStyle, width: cashColWidths.branch, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    Total
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: cashColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    {apiData.totalCash}
+                  </Typography>
                 </Box>
-            ))}
-        </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </Box>
     );
   };
 
   const renderInvestmentContent = () => {
-    // Re-using investment table structure
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography>Loading investment data...</Typography>
+        </Box>
+      );
+    }
+
+    if (error) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+          <Typography color="error">{error}</Typography>
+        </Box>
+      );
+    }
+
     const cellStyle = { flexShrink: 0, paddingRight: '8px' };
+    const investmentsColWidths = {
+      institution: '180px',
+      balance: '80px',
+      rate: '80px',
+    };
 
     return (
-        <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-            {renderContentWrapper(
-                <Box sx={{ overflowX: 'auto', width: '100%' }}>
-                    <Box sx={{ minWidth: minTableWidth }}>
-                        
-                        {/* Table Header */}
-                        <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.asset, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Asset Class</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Balance (₹L)</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.growth, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Growth (₹L)</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.percent, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Growth %</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.cagr, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>CAGR %</Typography>
-                        </Box>
+      <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+        {renderContentWrapper(
+          <Box sx={{ overflowX: 'auto', width: '100%' }}>
+            <Box sx={{ minWidth: '350px' }}>
+              {/* Table Header */}
+              <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
+                <Typography sx={{ ...cellStyle, width: investmentsColWidths.institution, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>
+                  Institution
+                </Typography>
+                <Typography sx={{ ...cellStyle, width: investmentsColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>
+                  Balance (₹L)
+                </Typography>
+                <Typography sx={{ ...cellStyle, width: investmentsColWidths.rate, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>
+                  Rate %
+                </Typography>
+              </Box>
 
-                        <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
-                            {investmentData.map((row, index) => (
-                                <Box
-                                    key={index}
-                                    sx={{
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        px: 2,
-                                        py: 1.5,
-                                        borderBottom: `1px solid ${COLORS.border}`,
-                                        bgcolor: '#fff',
-                                    }}
-                                >
-                                    <Typography noWrap sx={{ ...cellStyle, width: investmentColWidths.asset, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.asset}</Typography>
-                                    <Typography sx={{ ...cellStyle, width: investmentColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.balance}</Typography>
-                                    <Typography sx={{ ...cellStyle, width: investmentColWidths.growth, fontSize: '13px', fontWeight: 500, color: row.growthColor }}>{row.growthVal}</Typography>
-                                    <Box sx={{ ...cellStyle, width: investmentColWidths.percent }}>
-                                        <Box sx={{ bgcolor: row.percentBg, borderRadius: '16px', px: 1, py: 0.5, display: 'inline-block' }}>
-                                            <Typography sx={{ fontSize: '12px', fontWeight: 600, color: row.percentColor, lineHeight: 1 }}>{row.growthPercent}</Typography>
-                                        </Box>
-                                    </Box>
-                                    <Typography sx={{ ...cellStyle, width: investmentColWidths.cagr, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.cagr}</Typography>
-                                </Box>
-                            ))}
-                        </Box>
-                        {/* Total Row */}
-                        <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: COLORS.bgGrey }}>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.asset, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>Total</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>405.9</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.growth, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>10.7</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.percent, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>2.7%</Typography>
-                            <Typography sx={{ ...cellStyle, width: investmentColWidths.cagr, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>6.5%</Typography>
-                        </Box>
-                    </Box>
+              <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
+                {apiData.investmentsData.map((row, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      px: 2,
+                      py: 1.5,
+                      borderBottom: `1px solid ${COLORS.border}`,
+                      bgcolor: '#fff',
+                    }}
+                  >
+                    <Typography noWrap sx={{ ...cellStyle, width: investmentsColWidths.institution, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>
+                      {row.institution}
+                    </Typography>
+                    <Typography sx={{ ...cellStyle, width: investmentsColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>
+                      {row.balance}
+                    </Typography>
+                    <Typography sx={{ ...cellStyle, width: investmentsColWidths.rate, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>
+                      {row.rate}
+                    </Typography>
+                  </Box>
+                ))}
+
+                {/* Total Row */}
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: COLORS.bgGrey }}>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.institution, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    Total
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    {apiData.totalInvestments}
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.rate, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    -
+                  </Typography>
                 </Box>
-            , "Investment Breakdown")}
-        </Box>
+
+                {/* Average Interest Rate */}
+                <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: '#fff' }}>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.institution, fontSize: '13px', fontWeight: 600, color: COLORS.textDark }}>
+                    Average Interest Rate:
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    {apiData.averageInvestmentRate}%
+                  </Typography>
+                  <Typography sx={{ ...cellStyle, width: investmentsColWidths.rate, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>
+                    -
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </Box>
     );
   };
 
-  // --- Main Render (Using Modal and Slide) ---
+  // --- Main Render ---
   return (
-    // Replaced the outermost Box with MUI Modal for standard popup behavior
     <Modal
       open={open}
       onClose={onClose}
@@ -393,17 +641,14 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
         },
       }}
     >
-      {/* Wrap the content box with Slide for the 'slide up' animation */}
       <Slide direction="up" in={open} mountOnEnter unmountOnExit>
         <Box
           onClick={(e) => e.stopPropagation()}
           sx={{
-            // Styles adjusted for the modal content positioning
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
-            
             bgcolor: '#fff',
             borderTopLeftRadius: '24px',
             borderTopRightRadius: '24px',
@@ -418,8 +663,6 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
             gap: '20px',
             boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.1)',
             fontFamily: '"Inter", sans-serif',
-            
-            // Desktop/Tablet-specific styles
             '@media (min-width: 600px)': {
               maxWidth: '550px',
               mx: 'auto', 
@@ -464,7 +707,7 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
                   key={tab}
                   onClick={() => setActiveTab(tab as ActiveTab)}
                   sx={{
-                    flexShrink: 0, // Prevent shrinking in the scrollable row
+                    flexShrink: 0,
                     bgcolor: isActive ? COLORS.primaryBlue : '#fff',
                     border: isActive ? `1px solid ${COLORS.primaryBlue}` : `1px solid ${COLORS.border}`,
                     borderRadius: '8px',
@@ -481,7 +724,7 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
                   <Typography
                     sx={{
                       fontSize: '14px',
-                      color: isActive ? '#fff' : '#344054',
+                      color: isActive ? '#fff' : COLORS.textGrey,
                       fontWeight: 600,
                       textTransform: 'capitalize'
                     }}
@@ -498,7 +741,6 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
           {activeTab === 'cash' && renderCashContent()}
           {activeTab === 'banks' && renderBanksContent()}
           {activeTab === 'investments' && renderInvestmentContent()}
-
         </Box>
       </Slide>
     </Modal>
