@@ -8,16 +8,16 @@ import ChartTable from "../ChartTable";
 import type { Column } from "../ChartTable";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState, useMemo } from "react";
-import LoanDetailsPopup from "../popup/LoanDetailsPopup";
+import CashInvestmentsDetailsPopup from "../popup/CashInvestmentsDetailsPopup";
 import type {
-  LoanSummaryItem,
-  LoanClassDashboardItem,
-} from "../../hooks/useLoanSummary";
+  AssetSummaryItem,
+  AssetClassDashboardItem,
+} from "../../hooks/useAssetSummary";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
-interface LoansOverviewSectionProps {
-  loanOverviewData: LoanSummaryItem | null;
-  loanClassificationData: LoanClassDashboardItem[];
+interface AssetOverviewSectionProps {
+  assetOverviewData: AssetSummaryItem | null;
+  assetClassificationData: AssetClassDashboardItem[];
   loading?: boolean;
   error?: string | null;
 }
@@ -42,15 +42,15 @@ const getRandomColors = (count: number): string[] => {
   return shuffled.slice(0, count);
 };
 
-export default function LoansOverviewSection({
-  loanOverviewData,
-  loanClassificationData,
+export default function AssetOverviewSection({
+  assetOverviewData,
+  assetClassificationData,
   loading,
   error,
-}: LoansOverviewSectionProps) {
+}: AssetOverviewSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const filteredClassification = loanClassificationData.filter(
+  const filteredClassification = assetClassificationData.filter(
     (item) => item.label.toLowerCase() !== "main"
   );
 
@@ -62,7 +62,7 @@ export default function LoansOverviewSection({
 
   const donutData = filteredClassification.map((item, index) => ({
     label: item.label,
-    value: item.percent,
+    value: item.percentage,
     color: randomColors[index],
   }));
 
@@ -74,9 +74,9 @@ export default function LoansOverviewSection({
 
   const chartTableData = filteredClassification.map((item, index) => ({
     label: item.label,
-    percentage: `${item.percent}%`,
-    amount: item.amount,
-    change: item.percentage,
+    percentage: `${item.percentage}%`,
+    amount: item.balance,
+    change: item.yesterdayPercentage,
     color: randomColors[index],
   }));
 
@@ -85,7 +85,7 @@ export default function LoansOverviewSection({
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
-        {error || "Failed to load loan details."}
+        {error || "Failed to load assets data."}
       </Alert>
     );
   }
@@ -114,15 +114,15 @@ export default function LoansOverviewSection({
           mb: 2,
         }}
       >
-        Loans Overview
+        Cash & Investments
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
           data={{
-            title: "Total Loans",
-            value: Number(loanOverviewData?.Total) ?? "0",
+            title: "Total Assets",
+            value: Number(assetOverviewData?.Total) ?? "0",
             valueType: "currency",
-            change: [loanOverviewData?.Percentage ?? 0],
+            change: [assetOverviewData?.Percentage ?? 0],
             icon: <StackIcon />,
             showBarGraph: false,
             primaryAccentColor: "#BD8BFD",
@@ -132,9 +132,9 @@ export default function LoansOverviewSection({
         <InfoCard
           data={{
             title: "Avg. Interest Rate",
-            value: loanOverviewData?.Int ?? 0,
+            value: assetOverviewData?.Int ?? 0,
             valueType: "percentage",
-            change: [loanOverviewData?.IntPercentage ?? 0],
+            change: [assetOverviewData?.IntPercentage ?? 0],
             icon: <InterestIcon />,
             showBarGraph: false,
             primaryAccentColor: "#FDB176",
@@ -159,7 +159,7 @@ export default function LoansOverviewSection({
             fontWeight: 600,
           }}
         >
-          Loan Classification
+          Asset Classification
         </Typography>
         <Typography
           sx={{
@@ -169,7 +169,7 @@ export default function LoansOverviewSection({
             color: colors.gray,
           }}
         >
-          Distribution by asset quality
+          Cash, Bank Balance & Investments
         </Typography>
         <Box
           sx={{
@@ -183,7 +183,8 @@ export default function LoansOverviewSection({
         >
           <DonutChart
             data={donutData}
-            centerValue={loanOverviewData?.Total ?? "0"}
+            centerValue={assetOverviewData?.Total ?? "0"}
+            centerTitle="Total"
           />
         </Box>
         <ChartTable
@@ -193,11 +194,11 @@ export default function LoansOverviewSection({
         />
       </Box>
       <ViewMoreButton
-        title="View Loan Details"
-        onPress={() => setActivePopup("LoanDetailsPopUp")}
+        title="View Cash & Investments Details"
+        onPress={() => setActivePopup("AssetDetailsPopUp")}
       />
-      {activePopup === "LoanDetailsPopUp" && (
-        <LoanDetailsPopup open={true} onClose={handleClosePopup} />
+      {activePopup === "AssetDetailsPopUp" && (
+        <CashInvestmentsDetailsPopup open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );

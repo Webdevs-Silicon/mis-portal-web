@@ -12,7 +12,7 @@ import { formatCurrency } from "../utils/performanceDataTransformer";
 
 export type Column = {
   key: string;
-  type?: "chip" | "text" | "label" | "currency";
+  type?: "chip" | "text" | "label" | "currency" | "memberStats";
   width?: string | number;
   align?: "left" | "right" | "center";
 };
@@ -47,7 +47,41 @@ export default function ChartTable({
                     sx={{ whiteSpace: "nowrap" }}
                   >
                     {/* Custom Label + Percentage + Dot */}
-                    {col.type === "label" ? (
+                    {col.type === "memberStats" ? (
+                      <Box display="flex" gap={2}>
+                        {/* Members Row */}
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          width="100%"
+                        >
+                          <Typography fontSize={12} color="gray">
+                            Members
+                          </Typography>
+                          <Typography fontSize={14} fontWeight={600}>
+                            {row.memberCount.toLocaleString()}
+                          </Typography>
+                        </Box>
+
+                        {/* Share Capital Row */}
+                        <Box
+                          display="flex"
+                          flexDirection="column"
+                          justifyContent="space-between"
+                          alignItems="flex-start"
+                          width="100%"
+                        >
+                          <Typography fontSize={12} color="gray">
+                            Share Capital (₹L)
+                          </Typography>
+                          <Typography fontSize={14} fontWeight={600}>
+                            {formatCurrency(row.shareCapital)}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : col.type === "label" ? (
                       <Box display="flex" flexDirection="column">
                         <Box display="flex" alignItems="center" gap={1}>
                           <Box
@@ -57,12 +91,13 @@ export default function ChartTable({
                               borderRadius: "50%",
                               backgroundColor: row.color,
                               flexShrink: 0,
+                              marginLeft: "-10px",
                             }}
                           />
                           <Box>
                             <Typography
                               fontWeight={600}
-                              sx={{ whiteSpace: "nowrap" }}
+                              sx={{ whiteSpace: "nowrap", fontSize: 14 }}
                             >
                               {row.label}
                             </Typography>
@@ -87,7 +122,7 @@ export default function ChartTable({
                       // Default: Text with conditional color
                       <Typography
                         sx={{
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: 600,
                           whiteSpace: "nowrap",
                           color: isNegative ? "#EF4444" : "inherit",

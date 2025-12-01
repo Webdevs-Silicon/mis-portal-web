@@ -8,13 +8,15 @@ type Props = {
   data: {
     title: string;
     value: number; // The overall latest value
-    valueType: "currency" | "percentage";
-    change: number[];
+    valueType: "currency" | "percentage" | "number";
+    change?: number[];
     icon: React.ReactNode;
     primaryAccentColor: string;
     secondaryAccentColor: string;
     barValues?: number[]; // Raw values for the bars
     showBarGraph?: boolean;
+    width?: number | string;
+    showTopChip?: boolean;
   };
   onBarSelect?: (index: number, value: number) => void;
 };
@@ -23,16 +25,23 @@ export default function InfoCard({ data, onBarSelect }: Props) {
   const theme = useTheme();
   const [selectedBar, setSelectedBar] = useState<number | null>(null);
 
+  const hasChangeData = Array.isArray(data.change) && data.change.length > 0;
+
+  const hasBarGraph =
+    data.showBarGraph &&
+    Array.isArray(data.barValues) &&
+    data.barValues.length > 0;
+
   // Normalize barValues for consistent graph height
   const normalizedBarValues = useMemo(() => {
-    if (!data.barValues || data.barValues.length === 0) return [];
+    if (!hasBarGraph) return [];
 
-    const maxValue = Math.max(...data.barValues);
+    const maxValue = Math.max(...data.barValues!);
     // Avoid division by zero if all values are 0
-    if (maxValue === 0) return data.barValues.map(() => 0);
+    if (maxValue === 0) return data.barValues!.map(() => 0);
 
     // Scale all values to be between 0 and 1, relative to the max value
-    return data.barValues.map((v) => v / maxValue);
+    return data.barValues!.map((v) => v / maxValue);
   }, [data.barValues]);
 
   // Determine which bar is selected; default to the last one if available
@@ -49,7 +58,7 @@ export default function InfoCard({ data, onBarSelect }: Props) {
       ? data.barValues[displayIndex]
       : data.value; // Fallback to main value if no bar values
 
-  const chipChange = data.change[displayIndex] ?? 0;
+  const chipChange = hasChangeData ? data.change![displayIndex] ?? 0 : 0;
 
   const chipTrend: Trend = useMemo(() => {
     if (chipChange > 0) return "up";
@@ -58,23 +67,22 @@ export default function InfoCard({ data, onBarSelect }: Props) {
   }, [chipChange]);
 
   const formattedValue = useMemo(() => {
-    const valToFormat = displayValue;
+    const v = displayValue;
 
     if (data.valueType === "currency") {
-      if (isNaN(valToFormat) || !isFinite(valToFormat)) return "₹ 0";
+      if (isNaN(v) || !isFinite(v)) return "₹ 0";
 
-      // If < 1 lakh → format normally with commas
-      if (valToFormat < 100000) {
-        return `₹ ${valToFormat.toLocaleString("en-IN")}`;
-      }
-
-      // If ≥ 1 lakh → convert to L
-      const lakhs = valToFormat / 100000;
+      if (v < 100000) return `₹ ${v.toLocaleString("en-IN")}`;
+      const lakhs = v / 100000;
       return `₹ ${lakhs.toFixed(1)}L`;
     }
 
-    // Percentage
-    return `${valToFormat.toFixed(1)}%`;
+    if (data.valueType === "percentage") {
+      return `${v.toFixed(1)}%`;
+    }
+
+    // NEW: plain number format
+    return v.toLocaleString("en-IN");
   }, [displayValue, data.valueType]);
 
   // Handle the change text formatting
@@ -88,7 +96,7 @@ export default function InfoCard({ data, onBarSelect }: Props) {
     <Card
       sx={{
         p: 2.5,
-        width: 185,
+        width: data.width ?? 185,
         borderRadius: "12px",
         boxShadow: "0px 4px 20px rgba(0,0,0,0.05)",
         border: "1px solid #f0f0f0",
@@ -110,7 +118,7 @@ export default function InfoCard({ data, onBarSelect }: Props) {
           {data.icon}
         </Box>
 
-        {data.showBarGraph && (
+        {(data.showTopChip || data.showBarGraph) && hasChangeData && (
           <Chip
             isPositive={chipTrend === "up"}
             text={`${formattedChangeText}`}
@@ -180,12 +188,15 @@ export default function InfoCard({ data, onBarSelect }: Props) {
           })}
         </Box>
       ) : (
-        <Box style={{ marginTop: 8 }}>
-          <Chip
-            isPositive={chipTrend === "up"}
-            text={`${formattedChangeText}`}
-          />
-        </Box>
+        !data.showTopChip &&
+        hasChangeData && (
+          <Box style={{ marginTop: 8 }}>
+            <Chip
+              isPositive={chipTrend === "up"}
+              text={`${formattedChangeText}`}
+            />
+          </Box>
+        )
       )}
     </Card>
   );

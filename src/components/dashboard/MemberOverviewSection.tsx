@@ -1,23 +1,23 @@
 import { Alert, Box, Skeleton, Typography } from "@mui/material";
 import { colors, sizes } from "../../theme/theme";
 import StackIcon from "../../assets/icons/stackIcon.svg?react";
-import InterestIcon from "../../assets/icons/interestIcon.svg?react";
+import MemberIcon from "../../assets/icons/memberIcon.svg?react";
 import InfoCard from "../InfoCard";
 import DonutChart from "../DonutChart";
 import ChartTable from "../ChartTable";
 import type { Column } from "../ChartTable";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState, useMemo } from "react";
-import LoanDetailsPopup from "../popup/LoanDetailsPopup";
-import type {
-  LoanSummaryItem,
-  LoanClassDashboardItem,
-} from "../../hooks/useLoanSummary";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
+import type {
+  MemberClassDashboardItem,
+  MemberSummaryItem,
+} from "../../hooks/useMemberSummary";
+import MemberDetails from "../popup/MemberDetails";
 
-interface LoansOverviewSectionProps {
-  loanOverviewData: LoanSummaryItem | null;
-  loanClassificationData: LoanClassDashboardItem[];
+interface MemberOverviewSectionProps {
+  memberOverviewData: MemberSummaryItem | null;
+  memberClassificationData: MemberClassDashboardItem[];
   loading?: boolean;
   error?: string | null;
 }
@@ -42,15 +42,15 @@ const getRandomColors = (count: number): string[] => {
   return shuffled.slice(0, count);
 };
 
-export default function LoansOverviewSection({
-  loanOverviewData,
-  loanClassificationData,
+export default function MemberOverviewSection({
+  memberOverviewData,
+  memberClassificationData,
   loading,
   error,
-}: LoansOverviewSectionProps) {
+}: MemberOverviewSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  const filteredClassification = loanClassificationData.filter(
+  const filteredClassification = memberClassificationData.filter(
     (item) => item.label.toLowerCase() !== "main"
   );
 
@@ -62,20 +62,20 @@ export default function LoansOverviewSection({
 
   const donutData = filteredClassification.map((item, index) => ({
     label: item.label,
-    value: item.percent,
+    value: item.percentage,
     color: randomColors[index],
   }));
 
   const columns: Column[] = [
     { key: "label", type: "label" },
-    { key: "amount", type: "text", align: "right" },
-    { key: "change", type: "chip", align: "right" },
+    { key: "stats", type: "memberStats", align: "right" }, // custom renderer
   ];
 
   const chartTableData = filteredClassification.map((item, index) => ({
     label: item.label,
-    percentage: `${item.percent}%`,
-    amount: item.amount,
+    percentage: `${item.percentage}%`,
+    memberCount: item.memberCount,
+    shareCapital: item.shareBalance, // ← Add this
     change: item.percentage,
     color: randomColors[index],
   }));
@@ -85,7 +85,7 @@ export default function LoansOverviewSection({
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
-        {error || "Failed to load loan details."}
+        {error || "Failed to load deposit data."}
       </Alert>
     );
   }
@@ -114,31 +114,31 @@ export default function LoansOverviewSection({
           mb: 2,
         }}
       >
-        Loans Overview
+        Members
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
           data={{
-            title: "Total Loans",
-            value: Number(loanOverviewData?.Total) ?? "0",
-            valueType: "currency",
-            change: [loanOverviewData?.Percentage ?? 0],
-            icon: <StackIcon />,
+            title: "Total Members",
+            value: Number(memberOverviewData?.Total) ?? "0",
+            valueType: "number",
+            change: [memberOverviewData?.Percentage ?? 0],
+            icon: <MemberIcon />,
             showBarGraph: false,
-            primaryAccentColor: "#BD8BFD",
-            secondaryAccentColor: "#bc8bfd3d",
+            primaryAccentColor: "#f7ed65ff",
+            secondaryAccentColor: "#f7ed6550",
           }}
         />
         <InfoCard
           data={{
-            title: "Avg. Interest Rate",
-            value: loanOverviewData?.Int ?? 0,
-            valueType: "percentage",
-            change: [loanOverviewData?.IntPercentage ?? 0],
-            icon: <InterestIcon />,
+            title: "Shared Capital",
+            value: memberOverviewData?.Balance ?? 0,
+            valueType: "currency",
+            change: [memberOverviewData?.BalPercentage ?? 0],
+            icon: <StackIcon />,
             showBarGraph: false,
-            primaryAccentColor: "#FDB176",
-            secondaryAccentColor: "#fdb07633",
+            primaryAccentColor: "#BD8BFD",
+            secondaryAccentColor: "#bc8bfd3d",
           }}
         />
       </Box>
@@ -159,7 +159,7 @@ export default function LoansOverviewSection({
             fontWeight: 600,
           }}
         >
-          Loan Classification
+          Member Classification
         </Typography>
         <Typography
           sx={{
@@ -169,7 +169,7 @@ export default function LoansOverviewSection({
             color: colors.gray,
           }}
         >
-          Distribution by asset quality
+          Category wise distribution
         </Typography>
         <Box
           sx={{
@@ -183,7 +183,8 @@ export default function LoansOverviewSection({
         >
           <DonutChart
             data={donutData}
-            centerValue={loanOverviewData?.Total ?? "0"}
+            centerValue={String(memberOverviewData?.Total) ?? "0"}
+            centerTitle="Total"
           />
         </Box>
         <ChartTable
@@ -193,11 +194,11 @@ export default function LoansOverviewSection({
         />
       </Box>
       <ViewMoreButton
-        title="View Loan Details"
-        onPress={() => setActivePopup("LoanDetailsPopUp")}
+        title="View Member Details"
+        onPress={() => setActivePopup("MemberDetailsPopUp")}
       />
-      {activePopup === "LoanDetailsPopUp" && (
-        <LoanDetailsPopup open={true} onClose={handleClosePopup} />
+      {activePopup === "MemberDetailsPopUp" && (
+        <MemberDetails open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );
