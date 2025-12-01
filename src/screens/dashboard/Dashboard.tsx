@@ -7,17 +7,52 @@ import { useLoginData } from "../../hooks/useLoginData";
 import { usePerformanceOverview } from "../../hooks/usePerformanceOverview";
 import LoansOverviewSection from "../../components/dashboard/LoansOverviewSection";
 import { useLoanSummary } from "../../hooks/useLoanSummary";
+import { useDepositSummary } from "../../hooks/useDepositSummary";
+import { useAssetSummary } from "../../hooks/useAssetSummary";
+import { useBorrowings } from "../../hooks/useBorrowingSummary";
+import { useBranchNdefaulterSummary } from "../../hooks/useBranchNdefaulterSummary";
+import DepositOverviewSection from "../../components/dashboard/DepositOverviewSection";
+import AssetOverviewSection from "../../components/dashboard/AssetOverviewSection";
+import BorrowingSection from "../../components/dashboard/BorrowingSection";
+import BranchDetailsSection from "../../components/dashboard/BranchDetailsSection";
+import DefaulterSection from "../../components/dashboard/DefaulterSection";
+import { useMemberSummary } from "../../hooks/useMemberSummary";
+import MemberOverviewSection from "../../components/dashboard/MemberOverviewSection";
+import { useLatestEvent } from "../../hooks/useLatestEvent";
+import EventDetailsSection from "../../components/dashboard/EventDetailsSection";
 
 function Dashboard() {
   const { name, photo, lastLogin } = useLoginData();
   const { profitNLoss, fluid, workingCapital, overDue, ldr, loading, error } =
     usePerformanceOverview();
   const {
-    classificationData,
     loanSummaryData,
+    classificationData,
     loanSummaryLoading,
     loanSummaryError,
   } = useLoanSummary();
+  const {
+    depositSummaryData,
+    depositClassificationData,
+    depositSummaryError,
+    depositSummaryLoading,
+  } = useDepositSummary();
+  const {
+    assetClassificationData,
+    assetSummaryData,
+    assetSummaryError,
+    assetSummaryLoading,
+  } = useAssetSummary();
+  const {
+    memberSummaryData,
+    memberClassificationData,
+    memberSummaryError,
+    memberSummaryLoading,
+  } = useMemberSummary();
+  const { borrowData, borrowLoading, borrowError } = useBorrowings();
+  const { branchData, defaulterSummary, branchError, branchLoading } =
+    useBranchNdefaulterSummary();
+  const { eventData, eventLoading, eventError } = useLatestEvent();
 
   return (
     <Box
@@ -70,6 +105,44 @@ function Dashboard() {
           loanClassificationData={classificationData}
           loading={loanSummaryLoading}
           error={loanSummaryError}
+        />
+        <DepositOverviewSection
+          depositOverviewData={depositSummaryData}
+          depositClassificationData={depositClassificationData}
+          loading={depositSummaryLoading}
+          error={depositSummaryError}
+        />
+        <AssetOverviewSection
+          assetOverviewData={assetSummaryData}
+          assetClassificationData={assetClassificationData}
+          loading={assetSummaryLoading}
+          error={assetSummaryError}
+        />
+        <BorrowingSection
+          borrowingOverviewData={borrowData}
+          loading={borrowLoading}
+          error={borrowError}
+        />
+        <MemberOverviewSection
+          memberOverviewData={memberSummaryData}
+          memberClassificationData={memberClassificationData}
+          loading={memberSummaryLoading}
+          error={memberSummaryError}
+        />
+        <DefaulterSection
+          defaulterOverviewData={defaulterSummary}
+          loading={branchLoading}
+          error={branchError}
+        />
+        <BranchDetailsSection
+          branchOverviewData={branchData}
+          loading={branchLoading}
+          error={branchError}
+        />
+        <EventDetailsSection
+          eventOverviewData={eventData}
+          loading={eventLoading}
+          error={eventError}
         />
       </Box>
     </Box>
