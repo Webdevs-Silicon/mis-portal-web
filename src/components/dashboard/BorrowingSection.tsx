@@ -7,12 +7,14 @@ import type { BorrowMain } from "../../api/services/borrowService";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
 interface BorrowingSectionProps {
+  id?:string;
   borrowingOverviewData: BorrowMain | null;
   loading?: boolean;
   error?: string | null;
 }
 
 export default function BorrowingSection({
+  id,
   borrowingOverviewData,
   loading,
   error,
@@ -41,7 +43,7 @@ export default function BorrowingSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

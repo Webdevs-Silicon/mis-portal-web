@@ -268,16 +268,12 @@ import {
   CircularProgress, // Added for loading state
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import EventIcon from "@mui/icons-material/Event";
+import MeetingIcon from "../../assets/icons/meetingIcon.svg?react";
 import {
   getAllEvent,
  type GetAllEventResponse,
  type EventDetails,
-} from "../../api/services/eventService"; // Import necessary types and function
-
-// ----------------------------------------------------------------------
-// TYPES AND DATA (Updated EventItem to match API structure and added utility type)
-// ----------------------------------------------------------------------
+} from "../../api/services/eventService"; 
 
 interface UpcomingEventsProps {
   onClose: () => void;
@@ -449,6 +445,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ onClose, open }) => {
           borderRadius: 3,
           overflow: "hidden",
           mb: 2,
+          boxShadow: "none",
         }}
       >
         <CardContent sx={{ p: 2 }}>
@@ -456,7 +453,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ onClose, open }) => {
             {/* ICON */}
             <Box
               sx={{
-                background: "#6DC1FF",
+                background: "#F7F5FF",
                 height: 48,
                 width: 48,
                 borderRadius: 2,
@@ -467,7 +464,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ onClose, open }) => {
                 mr: 1.5,
               }}
             >
-              <EventIcon sx={{ color: "white", fontSize: 26 }} />
+              <MeetingIcon />
             </Box>
 
             {/* TITLE + DESCRIPTION */}
@@ -504,7 +501,7 @@ const UpcomingEvents: React.FC<UpcomingEventsProps> = ({ onClose, open }) => {
             sx={{
               display: "flex",
               justifyContent: "space-between",
-              mb: 2,
+              mb: 1.8,
             }}
           >
             <Typography color="text.secondary" sx={{ fontSize: "13px" }}>

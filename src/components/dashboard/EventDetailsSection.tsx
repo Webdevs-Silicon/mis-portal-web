@@ -8,12 +8,14 @@ import type { LatestEvent } from "../../api/services/eventService";
 import UpcomingEvents from "../popup/UpcomingEvents";
 
 interface EventDetailsSectionProps {
+  id?:string;
   eventOverviewData: LatestEvent | null;
   loading?: boolean;
   error?: string | null;
 }
 
 export default function EventDetailsSection({
+  id,
   eventOverviewData,
   loading,
   error,
@@ -46,7 +48,7 @@ export default function EventDetailsSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

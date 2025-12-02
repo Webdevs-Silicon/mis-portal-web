@@ -284,9 +284,9 @@ import {
   CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import BusinessIcon from '@mui/icons-material/Business';
-import PeopleIcon from '@mui/icons-material/People';
-import PhoneIcon from '@mui/icons-material/Phone';
+import BranchIcon from "../../assets/icons/branchIcon.svg?react";
+import StaffIcon from "../../assets/icons/staffIcon.svg?react";
+import MobileIcon from "../../assets/icons/phoneIcon.svg?react";
 import { getAllBranch, type GetAllBranchResponse } from '../../api/services/branchService';
 
 interface ViewBranchDetailsProps {
@@ -322,11 +322,11 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
   };
 
   // Helper function to format phone number
-  const formatPhoneNumber = (phone: number): string => {
-    const phoneStr = phone.toString();
-    // Format as XXX-XXX-XXXX
-    return `${phoneStr.slice(0, 3)}-${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
-  };
+  // const formatPhoneNumber = (phone: number): string => {
+  //   const phoneStr = phone.toString();
+  //   // Format as XXX-XXX-XXXX
+  //   return `${phoneStr.slice(0, 3)}-${phoneStr.slice(3, 6)}-${phoneStr.slice(6)}`;
+  // };
 
   return (
     <Modal
@@ -490,7 +490,7 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
                         justifyContent: 'center',
                       }}
                     >
-                      <BusinessIcon sx={{ color: '#4a90e2', fontSize: '22px' }} />
+                      <BranchIcon />
                     </Box>
 
                     <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -532,7 +532,7 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
                         px: '12px',
                       }}
                     >
-                      <PeopleIcon sx={{ fontSize: '16px', color: 'rgba(115, 115, 115, 1.00)' }} />
+                     <StaffIcon/>
                       <Typography
                         sx={{
                           fontSize: '12px',
@@ -545,7 +545,7 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
                     </Box>
 
                     {/* Contact Number Badge */}
-                    <Box
+                    {/* <Box
                       sx={{
                         flex: 1,
                         display: 'flex',
@@ -556,9 +556,10 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
                         borderRadius: '100px',
                         py: '8px',
                         px: '12px',
+                         minWidth: 0,
                       }}
                     >
-                      <PhoneIcon sx={{ fontSize: '16px', color: '#4CAF50' }} />
+                     <MobileIcon/>
                       <Typography
                         sx={{
                           fontSize: '12px',
@@ -568,7 +569,36 @@ const ViewBranchDetails: React.FC<ViewBranchDetailsProps> = ({ onClose, open }) 
                       >
                         {formatPhoneNumber(branch.MobNo)}
                       </Typography>
-                    </Box>
+                    </Box> */}
+                    {/* Contact Number Badge */}
+<Box
+  sx={{
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8px',
+    bgcolor: 'rgba(235, 253, 233, 1.00)',
+    borderRadius: '100px',
+    py: '8px',
+    px: '12px',
+    minWidth: 0, // Add this to allow shrinking
+  }}
+>
+  <MobileIcon />
+  <Typography
+    sx={{
+      fontSize: '12px',
+      fontWeight: 600,
+      color: 'rgba(40, 40, 40, 1.00)',
+      whiteSpace: 'nowrap', // Add this to prevent wrapping
+      overflow: 'hidden', // Add this
+      textOverflow: 'ellipsis', // Optional: adds "..." if text is too long
+    }}
+  >
+    {branch.MobNo}
+  </Typography>
+</Box>
                   </Box>
                 </Paper>
               ))

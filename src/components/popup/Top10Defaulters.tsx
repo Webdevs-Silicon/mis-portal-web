@@ -533,7 +533,7 @@ const Top10Defaulters: React.FC<Top10DefaultersProps> = ({ onClose, open }) => {
                         sx={{
                           width: '40px',
                           height: '40px',
-                          bgcolor: index < 3 ? 'rgba(255, 217, 217, 1.00)' : 'rgba(246, 246, 246, 1.00)', 
+                          bgcolor: 'rgba(255, 217, 217, 1.00)',
                           borderRadius: '12px',
                           display: 'flex',
                           alignItems: 'center',
@@ -542,7 +542,7 @@ const Top10Defaulters: React.FC<Top10DefaultersProps> = ({ onClose, open }) => {
                       >
                         <Typography
                           sx={{
-                            color: index < 3 ? 'rgba(205, 68, 68, 1.00)' : 'rgba(115, 115, 115, 1.00)',
+                            color:  'rgba(205, 68, 68, 1.00)' ,
                             fontWeight: 600,
                             fontSize: '14px',
                           }}

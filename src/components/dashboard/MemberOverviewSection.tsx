@@ -16,6 +16,7 @@ import type {
 import MemberDetails from "../popup/MemberDetails";
 
 interface MemberOverviewSectionProps {
+  id?:string;
   memberOverviewData: MemberSummaryItem | null;
   memberClassificationData: MemberClassDashboardItem[];
   loading?: boolean;
@@ -43,6 +44,7 @@ const getRandomColors = (count: number): string[] => {
 };
 
 export default function MemberOverviewSection({
+  id,
   memberOverviewData,
   memberClassificationData,
   loading,
@@ -106,7 +108,7 @@ export default function MemberOverviewSection({
   }
 
   return (
-    <Box>
+    <Box id = {id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

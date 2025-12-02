@@ -16,6 +16,7 @@ import type {
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
 interface DepositOverviewSectionProps {
+  id?:string;
   depositOverviewData: DepositSummaryItem | null;
   depositClassificationData: DepositClassDashboardItem[];
   loading?: boolean;
@@ -43,6 +44,7 @@ const getRandomColors = (count: number): string[] => {
 };
 
 export default function DepositOverviewSection({
+  id,
   depositOverviewData,
   depositClassificationData,
   loading,
@@ -106,7 +108,7 @@ export default function DepositOverviewSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

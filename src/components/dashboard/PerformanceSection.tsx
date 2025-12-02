@@ -6,17 +6,16 @@ import ValetIcon from "../../assets/icons/valetIcon.svg?react";
 import PercentIcon from "../../assets/icons/percentIcon.svg?react";
 import ViewMoreButton from "../ViewMoreButton";
 import { useState } from "react";
-// import PerformancePopUp from "../popup/PerformancePopUp";
+import PerformancePopUp from "../popup/PerformancePopUp";
 import type {
   LDRDetail,
   OverDueDetail,
   OverviewItem,
 } from "../../api/services/performanceService";
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
-// import DepositDetailsPopup from "../popup/DepositDetailsPopup";
-import CashInvestmentsDetailsPopup from "../popup/CashInvestmentsDetailsPopup";
 
 interface PerformanceSectionProps {
+  id?:string;
   fluidData: OverviewItem[];
   workingCapitalData: OverviewItem[];
   overDueData: OverDueDetail[];
@@ -30,6 +29,7 @@ function extractAmounts<T extends { Amount?: number }>(data: T[]) {
 }
 
 export default function PerformanceSection({
+  id,
   fluidData,
   workingCapitalData,
   overDueData,
@@ -81,7 +81,7 @@ export default function PerformanceSection({
   const handleClosePopup = () => setActivePopup(null);
 
   return (
-    <Box sx={{ marginBottom: 2 }}>
+    <Box sx={{ marginBottom: 2 }} id={id}>
       {/* Row 1 */}
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
         <InfoCard
@@ -150,7 +150,7 @@ export default function PerformanceSection({
       />
 
       {activePopup === "PerformancePopUp" && (
-        <CashInvestmentsDetailsPopup open={true} onClose={handleClosePopup} />
+        <PerformancePopUp open={true} onClose={handleClosePopup} />
       )}
     </Box>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react'; 
 import {
   Box,
@@ -13,9 +12,15 @@ import {
 
 // MUI Icons
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+
+// Custom Icons
+import ProfitIcon from "../../assets/icons/profitIcon.svg?react";
+import FluidIcon from "../../assets/icons/fluidWhiteIcon.svg?react";
+import OverdueIcon from "../../assets/icons/overdueIcon.svg?react";
+import WorkingCapitalIcon from "../../assets/icons/workingCapitalIcon.svg?react";
+import LdrIcon from "../../assets/icons/overdueIcon.svg?react";
 
 // API Services
 import {
@@ -115,47 +120,47 @@ interface SelectedBarData {
 // Color schemes and order (Keeping existing static data)
 export const colorSchemes: Record<TabType, ColorScheme> = {
   'profit': {
-    primary: '#10B981',
+    primary: '#0068B5',
     secondary: '#ECFDF5',
-    progressBar: '#10B981',
-    barChart: '#10B981',
-    iconBackground: '#10B981',
-    changePositive: '#10B981',
+    progressBar: '#14B0B8',
+    barChart: '#14B0B8',
+    iconBackground: '#14B0B8',
+    changePositive: '#14B0B8',
     changeNegative: '#EF4444',
   },
   'fluid-resources': {
-    primary: '#288AD3',
-    secondary: '#EEF7FF',
-    progressBar: '#5BB2F2',
+    primary: '#0068B5',
+    secondary: '#F4FAFF',
+    progressBar: '#5CB3F2',
     barChart: '#6DC1FF',
     iconBackground: '#288AD3',
     changePositive: '#298A42', 
     changeNegative: '#EF4444',
   },
   'overdue': {
-    primary: '#F59E0B',
-    secondary: '#FFFBEB',
-    progressBar: '#F59E0B',
-    barChart: '#F59E0B',
-    iconBackground: '#F59E0B',
+    primary: '#0068B5',
+    secondary: '#FBF5FF',
+    progressBar: '#BD8BFD',
+    barChart: '#BD8BFD',
+    iconBackground: '#BD8BFD',
     changePositive: '#10B981',
     changeNegative: '#EF4444',
   },
   'working-capital': {
-    primary: '#8B5CF6',
-    secondary: '#F5F3FF',
-    progressBar: '#8B5CF6',
-    barChart: '#8B5CF6',
-    iconBackground: '#8B5CF6',
+    primary: '#0068B5',
+    secondary: '#FFF8EF',
+    progressBar: '#FDB176',
+    barChart: '#FDB176',
+    iconBackground: '#FDB176',
     changePositive: '#10B981',
     changeNegative: '#EF4444',
   },
   'ldr': {
-    primary: '#EC4899',
-    secondary: '#FDF2F8',
-    progressBar: '#EC4899',
-    barChart: '#EC4899',
-    iconBackground: '#EC4899',
+    primary: '#0068B5',
+    secondary: '#FEFBE8',
+    progressBar: '#ECCE49',
+    barChart: '#ECCE49',
+    iconBackground: '#ECCE49',
     changePositive: '#10B981',
     changeNegative: '#EF4444',
   },
@@ -186,6 +191,15 @@ const transformerMap: Record<TabType, (data: any) => any> = {
   'overdue': transformODData,
   'working-capital': transformWCData,
   'ldr': transformLDRData,
+};
+
+// Icon mapping for each tab
+const iconMap: Record<TabType, React.ComponentType<any>> = {
+  'profit': ProfitIcon,
+  'fluid-resources': FluidIcon,
+  'overdue': OverdueIcon,
+  'working-capital': WorkingCapitalIcon,
+  'ldr': LdrIcon,
 };
 
 // FIXED: Helper function to transform trend API data
@@ -298,6 +312,9 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
   
   // Ref for the chart container to calculate tooltip position
   const chartContainerRef = useRef<HTMLDivElement>(null); 
+
+  // Get the current tab's icon component
+  const CurrentIcon = iconMap[activeTab];
 
   // FIXED: Effect to set initial selectedBarData when active tab's trend data loads
   useEffect(() => {
@@ -558,6 +575,7 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
     const tab = tabs[tabId];
     const isActive = activeTab === tabId;
     const tabColors = colorSchemes[tabId];
+    // const TabIcon = iconMap[tabId];
 
     return (
       <Box
@@ -575,6 +593,9 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
           transition: 'all 0.2s ease',
           flexShrink: 0,
           position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
         }}
       >
         {/* Loading indicator on tab */}
@@ -589,6 +610,15 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
             }} 
           />
         )}
+        {/* Tab Icon */}
+        {/* <TabIcon 
+          style={{ 
+            width: '16px', 
+            height: '16px',
+            color: isActive ? '#FFFFFF' : tabColors.primary,
+            fill: isActive ? '#FFFFFF' : tabColors.primary
+          }} 
+        /> */}
         <Typography
           sx={{
             fontFamily: '"DM Sans", sans-serif',
@@ -844,7 +874,14 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
                                 backgroundColor: colors.iconBackground,
                             }}
                         >
-                            <ShowChartIcon sx={{ color: '#FFFFFF', fontSize: '20px' }} />
+                            <CurrentIcon 
+                              style={{ 
+                                width: '24px', 
+                                height: '24px',
+                                color: '#FFFFFF',
+                                // fill: '#FFFFFF'
+                              }} 
+                            />
                         </Box>
 
                         <Box>
@@ -963,7 +1000,7 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
                     )}
                     
                     {/* Max Value Label for Context */}
-                    <Typography
+                    {/* <Typography
                         sx={{
                             color: '#070707',
                             fontSize: '12px',
@@ -974,7 +1011,7 @@ const PerformancePopUp: React.FC<PerformancePopUpProps> = ({ onClose, open }) =>
                         }}
                     >
                         Max Value: {trendChartMaxValue > 0 ? (activeTab === 'overdue' || activeTab === 'ldr' ? `${trendChartMaxValue.toFixed(1)}%` : `₹ ${trendChartMaxValue.toFixed(2)}`) : 'N/A'}
-                    </Typography>
+                    </Typography> */}
 
                     {currentTab.isTrendLoading ? (
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '72px' }}>

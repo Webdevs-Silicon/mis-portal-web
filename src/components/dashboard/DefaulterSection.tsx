@@ -9,12 +9,14 @@ import { useState } from "react";
 import Top10Defaulters from "../popup/Top10Defaulters";
 
 interface DefaulterSectionProps {
+  id?:string;
   defaulterOverviewData: TopDefaulterSummary | null;
   loading?: boolean;
   error?: string | null;
 }
 
 export default function DefaulterSection({
+  id,
   defaulterOverviewData,
   loading,
   error,
@@ -47,7 +49,7 @@ export default function DefaulterSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

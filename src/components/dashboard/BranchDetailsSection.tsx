@@ -10,12 +10,14 @@ import { useState } from "react";
 import ViewBranchDetails from "../popup/ViewBranchDetails";
 
 interface BranchDetailsSectionProps {
+  id?:string;
   branchOverviewData: BranchNStaff | null;
   loading?: boolean;
   error?: string | null;
 }
 
 export default function BranchDetailsSection({
+  id,
   branchOverviewData,
   loading,
   error,
@@ -48,7 +50,7 @@ export default function BranchDetailsSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

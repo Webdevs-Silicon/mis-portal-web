@@ -16,6 +16,7 @@ import type {
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
 interface AssetOverviewSectionProps {
+  id?:string;
   assetOverviewData: AssetSummaryItem | null;
   assetClassificationData: AssetClassDashboardItem[];
   loading?: boolean;
@@ -43,6 +44,7 @@ const getRandomColors = (count: number): string[] => {
 };
 
 export default function AssetOverviewSection({
+  id,
   assetOverviewData,
   assetClassificationData,
   loading,
@@ -106,7 +108,7 @@ export default function AssetOverviewSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,

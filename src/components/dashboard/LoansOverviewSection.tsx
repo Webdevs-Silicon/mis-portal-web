@@ -16,6 +16,7 @@ import type {
 import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
 interface LoansOverviewSectionProps {
+  id?:string;
   loanOverviewData: LoanSummaryItem | null;
   loanClassificationData: LoanClassDashboardItem[];
   loading?: boolean;
@@ -43,6 +44,7 @@ const getRandomColors = (count: number): string[] => {
 };
 
 export default function LoansOverviewSection({
+  id,
   loanOverviewData,
   loanClassificationData,
   loading,
@@ -106,7 +108,7 @@ export default function LoansOverviewSection({
   }
 
   return (
-    <Box>
+    <Box id={id}>
       <Typography
         sx={{
           fontSize: sizes.mediumLarge,
