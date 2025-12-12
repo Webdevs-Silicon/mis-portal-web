@@ -3,17 +3,8 @@ import { BrowserRouter } from "react-router-dom";
 
 function App() {
   return (
-    <BrowserRouter>
-      {/* <div
-        style={{
-          maxWidth: "430px", // iphone screen
-          // margin: "0 auto",
-          // background: "#fc1d1dff",
-          minHeight: "100vh",
-        }}
-      > */}
+    <BrowserRouter basename="/TestBank/MISPortal_Build/">
       <AppRoutes />
-      {/* </div> */}
     </BrowserRouter>
   );
 }

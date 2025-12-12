@@ -20,8 +20,8 @@ interface PerformanceSectionProps {
   workingCapitalData: OverviewItem[];
   overDueData: OverDueDetail[];
   ldrData: LDRDetail[];
-  loading: boolean;
-  error: string | null;
+  // loading: boolean;
+  // error: string | null;
 }
 
 function extractAmounts<T extends { Amount?: number }>(data: T[]) {
@@ -34,33 +34,34 @@ export default function PerformanceSection({
   workingCapitalData,
   overDueData,
   ldrData,
-  loading = true,
-  error,
+  // loading = true,
+  // loading,
+  // error,
 }: PerformanceSectionProps) {
   const [activePopup, setActivePopup] = useState<string | null>(null);
 
-  if (error) {
-    return (
-      <Alert severity="error" sx={{ mb: 2 }}>
-        {error || "Failed to load performance data."}
-      </Alert>
-    );
-  }
+  // if (error) {
+  //   return (
+  //     <Alert severity="error" sx={{ mb: 2 }}>
+  //       {error || "Failed to load performance data."}
+  //     </Alert>
+  //   );
+  // }
 
-  if (loading) {
-    return (
-      <Box>
-        <InfoCardSkeleton rows={2} />
+  // if (loading) {
+  //   return (
+  //     <Box>
+  //       <InfoCardSkeleton rows={2} />
 
-        <Skeleton
-          variant="rounded"
-          height={45}
-          width="100%"
-          sx={{ borderRadius: 2, mt: 2 }}
-        />
-      </Box>
-    );
-  }
+  //       <Skeleton
+  //         variant="rounded"
+  //         height={45}
+  //         width="100%"
+  //         sx={{ borderRadius: 2, mt: 2 }}
+  //       />
+  //     </Box>
+  //   );
+  // }
 
   const fluidAmounts = extractAmounts(fluidData);
   const wcAmounts = extractAmounts(workingCapitalData);

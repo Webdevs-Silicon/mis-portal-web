@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { Box, Typography, Button, List, ListItem, ListItemText } from "@mui/material";
-import { MenuOpen as MenuOpenIcon, DescriptionOutlined, AccountBalanceWalletOutlined, AccountBalanceOutlined, PeopleAltOutlined, ErrorOutlineOutlined, LocationOnOutlined, EventOutlined } from "@mui/icons-material";
+import {  DescriptionOutlined, AccountBalanceWalletOutlined, AccountBalanceOutlined, PeopleAltOutlined, ErrorOutlineOutlined, LocationOnOutlined, EventOutlined } from "@mui/icons-material";
 import MenuIcon from "../assets/icons/menuIcon.svg?react"
 
 // --- Data Structures ---

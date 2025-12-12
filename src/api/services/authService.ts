@@ -8,11 +8,14 @@ export interface BankLogoResponse {
 
 export interface VerifyOtpRequest {
   RequestID: string;
+  MobileNo:string,
   OTP: string;
 }
 
 export interface VerifyOtpResponse {
-  RC: string;
+  RC: number;
+  Message: string;
+  MobileNo: string;
   TokenNo: string;
 }
 
@@ -43,6 +46,18 @@ export interface LoginResponse {
   DirectorDetails: DirectorDetail[];
 }
 
+export interface SignInRequest {
+  MobileNo: string;
+}
+
+export interface SignInResponse {
+  RC: number;
+  Message: string;
+  OTP: string;
+  MobileNo: string;
+  ValidUntil: string;
+}
+
 // ----------------- API FUNCTIONS -----------------
 
 export const fetchBankLogo = async (): Promise<string | null> => {
@@ -58,7 +73,7 @@ export const fetchBankLogo = async (): Promise<string | null> => {
 export const verifyOtp = async (
   payload: Omit<VerifyOtpRequest, "RequestID">
 ): Promise<VerifyOtpResponse> => {
-  const requestId = "SignIn";
+  const requestId = "VerifyOTP";
   const response = await apiClient.get<VerifyOtpResponse>("/", {
     params: {
       ...payload,
@@ -92,3 +107,19 @@ export const loginDetails = async (): Promise<LoginResponse> => {
   });
   return response.data;
 };
+
+export const signIn = async (
+  payload: SignInRequest
+): Promise<SignInResponse> => {
+  const params = {
+    RequestID: "SignIn",
+    ...payload,
+  };
+
+  console.log("SignIn params:", params);
+
+  const response = await apiClient.get<SignInResponse>("/", { params });
+
+  return response.data;
+};
+

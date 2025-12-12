@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import TrendingUpIcon from "../assets/icons/trendingUpIcon.svg?react";
-import TrendingDownIcon from "../assets/icons/trendingDownIcon.svg?react";
+import TrendingDownRed from "../assets/icons/trendingDownRed.svg?react"
 
 type ChipProps = {
   isPositive: boolean; // REQUIRED
@@ -8,13 +8,13 @@ type ChipProps = {
 };
 
 export default function Chip({ isPositive, text }: ChipProps) {
+  const color = isPositive ? "#379B50" : "#DF5F5F";
   const icon = isPositive ? (
     <TrendingUpIcon height={14} width={14} />
   ) : (
-    <TrendingDownIcon height={14} width={14} />
+    <TrendingDownRed height={14} width={14} />
   );
-  const color = isPositive ? "#379B50" : "#FFFFFF";
-  const backgroundColor = isPositive ? "#E9FCEE" : "#DF5F5F";
+  const backgroundColor = isPositive ? "#E9FCEE" : "#FCE9E9";
 
   return (
     <Box

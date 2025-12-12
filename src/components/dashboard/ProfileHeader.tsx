@@ -4,6 +4,7 @@ import LogoutIcon from "../../assets/icons/logoutIcon.svg?react";
 import ProfilePic from "../../assets/images/default_user.png";
 import { useNavigate } from "react-router-dom"; // If not using expo-router
 import ConfirmModal from "../ConfirmModal";
+import { clearAuthData, getMobile } from "../../api/client/apiClient";
 
 type ProfileHeaderProps = {
   name: string;
@@ -17,7 +18,7 @@ export default function ProfileHeader({
   lastLogin,
 }: ProfileHeaderProps) {
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [loading, _setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -25,8 +26,10 @@ export default function ProfileHeader({
     setShowLogoutModal(false);
   };
 
-  const handleLogout = () => {
-    navigate("/");
+  const handleLogout =async () => {
+    const mobile = getMobile();
+    await clearAuthData()
+   navigate(`/${mobile}`, { replace: true });
   };
 
   return (

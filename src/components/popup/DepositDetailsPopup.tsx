@@ -362,6 +362,535 @@
 // };
 
 // export default DepositDetailsPopup;
+// import React, { useState, useEffect } from 'react';
+// import {
+//   Box,
+//   Typography,
+//   IconButton,
+//   Modal,
+//   Slide,
+// } from '@mui/material';
+// import CloseIcon from '@mui/icons-material/Close';
+// import { getDepositBranchWise, getDepositGrowthWise } from '../../api/services/depositService';
+
+// // --- Types ---
+// interface DepositDetailsPopupProps {
+//   onClose: () => void;
+//   open: boolean; 
+// }
+
+// interface BranchData {
+//   name: string;
+//   balance: string;
+//   growthVal: string;
+//   growthPercent: string;
+//   accounts: string;
+//   growthColor?: string;
+//   percentBg?: string;
+//   percentColor?: string;
+// }
+
+// interface GrowthData {
+//   typeName: string;
+//   yesterday: number;
+//   lastMonth: number;
+//   lastYear: number;
+// }
+
+// interface ApiData {
+//   branchData: BranchData[];
+//   growthData: GrowthData[];
+//   totalData: {
+//     balance: string;
+//     growth: string;
+//     growthPercent: string;
+//     growthPercentValue: number;
+//     accounts: string;
+//   } | null;
+// }
+
+// // --- Constants & Styles ---
+// const COLORS = {
+//   primaryBlue: '#0068B5',
+//   textDark: '#101828',
+//   textGrey: '#667085',
+//   bgGreen: '#ECFDF3',
+//   textGreen: '#027A48',
+//   bgRed: '#FEF3F2',
+//   textRed: '#B42318',
+//   bgGrey: '#F9FAFB',
+//   border: '#EAECF0',
+// };
+
+// // --- Helper Components ---
+// const PercentageBadge: React.FC<{ value: string; type?: 'positive' | 'negative' }> = ({ value, type = 'positive' }) => {
+//   const isPositive = type === 'positive';
+//   return (
+//     <Box
+//       sx={{
+//         bgcolor: isPositive ? COLORS.bgGreen : COLORS.bgRed,
+//         borderRadius: '16px',
+//         px: '8px',
+//         py: '2px',
+//         display: 'inline-flex',
+//         alignItems: 'center',
+//         justifyContent: 'center',
+//       }}
+//     >
+//       <Typography
+//         sx={{
+//           fontSize: '12px',
+//           fontWeight: 500,
+//           color: isPositive ? COLORS.textGreen : COLORS.textRed,
+//           lineHeight: '18px',
+//         }}
+//       >
+//         {value}
+//       </Typography>
+//     </Box>
+//   );
+// };
+
+// // --- Main Component ---
+// const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open }) => {
+//   const [activeTab, setActiveTab] = useState<'growth' | 'branch'>('growth');
+//   const [apiData, setApiData] = useState<ApiData>({
+//     branchData: [],
+//     growthData: [],
+//     totalData: null
+//   });
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+
+//   // --- API Calls - Fetch both APIs when modal opens ---
+//   useEffect(() => {
+//     const fetchAllData = async () => {
+//       if (!open) return;
+      
+//       setLoading(true);
+//       setError(null);
+      
+//       try {
+//         // Fetch both APIs in parallel
+//         const [branchResponse, growthResponse] = await Promise.all([
+//           getDepositBranchWise(),
+//           getDepositGrowthWise()
+//         ]);
+
+//         let branchData: BranchData[] = [];
+//         let totalData = null;
+
+//         // Process branch data
+//         if (branchResponse.Header.RC === "0") {
+//           branchData = Object.entries(branchResponse.BranchWise)
+//             .filter(([key]) => key !== 'Total') // Exclude Total from main list
+//             .map(([branchName, data]) => {
+//               const growthPercent = data.GrowthPer;
+//               const isPositive = growthPercent >= 0;
+//               return {
+//                 name: branchName,
+//                 balance: (data.Balance / 100000).toFixed(1), // Convert to lakhs
+//                 growthVal: data.Growth >= 0 ? `+${(data.Growth / 100000).toFixed(1)}` : `${(data.Growth / 100000).toFixed(1)}`,
+//                 growthPercent: `${growthPercent.toFixed(1)}%`,
+//                 accounts: data.BranchAccs.toString(),
+//                 growthColor: isPositive ? COLORS.textGreen : COLORS.textRed,
+//                 percentBg: isPositive ? COLORS.bgGreen : COLORS.bgRed,
+//                 percentColor: isPositive ? COLORS.textGreen : COLORS.textRed,
+//               };
+//             });
+
+//           // Get total data
+//           const totalBranchData = branchResponse.BranchWise.Total;
+//           if (totalBranchData) {
+//             totalData = {
+//               balance: (totalBranchData.Balance / 100000).toFixed(1),
+//               growth: totalBranchData.Growth >= 0 ? `+${(totalBranchData.Growth / 100000).toFixed(1)}` : `${(totalBranchData.Growth / 100000).toFixed(1)}`,
+//               growthPercent: `${totalBranchData.GrowthPer.toFixed(1)}%`,
+//               growthPercentValue: totalBranchData.GrowthPer,
+//               accounts: totalBranchData.BranchAccs.toString(),
+//             };
+//           }
+//         }
+
+//         // Process growth data
+//         let growthData: GrowthData[] = [];
+//         if (growthResponse.Header.RC === "0") {
+//           growthData = growthResponse.GrowthWise.map(item => ({
+//             typeName: item.TypeName,
+//             yesterday: item.LastDayPer,
+//             lastMonth: item.LastMonthPer,
+//             lastYear: item.LastYearPer,
+//           }));
+//         }
+
+//         setApiData({
+//           branchData,
+//           growthData,
+//           totalData
+//         });
+
+//       } catch (err) {
+//         setError('Failed to fetch data');
+//         console.error('Error fetching deposit data:', err);
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchAllData();
+//   }, [open]); // Only depend on open prop
+
+//   const branchColWidths = {
+//     branch: '140px',
+//     balance: '80px',
+//     growth: '80px',
+//     percent: '80px',
+//     accounts: '80px',
+//   };
+
+//   const minTableWidth = '500px';
+
+//   // --- Render Functions ---
+//   const renderGrowthContent = () => {
+//     if (loading) {
+//       return (
+//         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+//           <Typography>Loading growth data...</Typography>
+//         </Box>
+//       );
+//     }
+
+//     if (error) {
+//       return (
+//         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+//           <Typography color="error">{error}</Typography>
+//         </Box>
+//       );
+//     }
+
+//     const rowStyle = {
+//       display: 'grid',
+//       gridTemplateColumns: '1.2fr 1fr 1fr 1fr 1fr',
+//       alignItems: 'center',
+//       padding: '12px 16px',
+//       borderBottom: `1px solid ${COLORS.border}`,
+//     };
+
+//     // Find overall growth data
+//     const overallGrowth = apiData.growthData.find(item => item.typeName === 'OVERALL');
+//     const overallGrowthValue = overallGrowth ? overallGrowth.yesterday : 0;
+
+//     return (
+//       <Box
+//         sx={{
+//           border: `1px solid ${COLORS.border}`,
+//           borderRadius: '12px',
+//           overflow: 'hidden',
+//           display: 'flex',
+//           flexDirection: 'column',
+//           boxShadow: '0px 1px 2px rgba(16, 24, 40, 0.05)',
+//         }}
+//       >
+//         <Box
+//           sx={{
+//             display: 'flex',
+//             alignItems: 'center',
+//             justifyContent: 'space-between',
+//             px: 2,
+//             py: 1.5,
+//             borderBottom: `1px solid ${COLORS.border}`,
+//             bgcolor: '#fff',
+//           }}
+//         >
+//           <Typography sx={{ fontSize: '14px', fontWeight: 600, color: COLORS.textDark }}>Today's Growth</Typography>
+//           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+//             <Typography sx={{ fontSize: '12px', color: COLORS.textGrey }}>Overall Growth</Typography>
+//             <PercentageBadge 
+//               value={`${overallGrowthValue >= 0 ? '+' : ''}${overallGrowthValue.toFixed(1)}%`} 
+//               type={overallGrowthValue >= 0 ? 'positive' : 'negative'} 
+//             />
+//           </Box>
+//         </Box>
+
+//         {/* Header Row */}
+//         <Box sx={{ ...rowStyle, py: 1.5, bgcolor: '#fff' }}>
+//           <Typography sx={{ fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>VS</Typography>
+//           {apiData.growthData.map((item) => (
+//             <Typography 
+//               key={item.typeName}
+//               sx={{ fontSize: '11px', fontWeight: 500, color: COLORS.textGrey, textAlign: 'center' }}
+//             >
+//               {item.typeName}
+//             </Typography>
+//           ))}
+//         </Box>
+
+//         {/* Yesterday Row */}
+//         <Box sx={rowStyle}>
+//           <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>Yesterday</Typography>
+//           {apiData.growthData.map((item) => (
+//             <Box key={`yesterday-${item.typeName}`} sx={{ textAlign: 'center' }}>
+//               <PercentageBadge 
+//                 value={`${item.yesterday >= 0 ? '+' : ''}${item.yesterday.toFixed(1)}%`}
+//                 type={item.yesterday >= 0 ? 'positive' : 'negative'}
+//               />
+//             </Box>
+//           ))}
+//         </Box>
+
+//         {/* Last Month Row */}
+//         <Box sx={rowStyle}>
+//           <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>Last Month</Typography>
+//           {apiData.growthData.map((item) => (
+//             <Box key={`month-${item.typeName}`} sx={{ textAlign: 'center' }}>
+//               <PercentageBadge 
+//                 value={`${item.lastMonth >= 0 ? '+' : ''}${item.lastMonth.toFixed(1)}%`}
+//                 type={item.lastMonth >= 0 ? 'positive' : 'negative'}
+//               />
+//             </Box>
+//           ))}
+//         </Box>
+
+//         {/* Last Year Row */}
+//         <Box sx={rowStyle}>
+//           <Typography sx={{ fontSize: '13px', fontWeight: 500, color: COLORS.primaryBlue }}>Last Year</Typography>
+//           {apiData.growthData.map((item) => (
+//             <Box key={`year-${item.typeName}`} sx={{ textAlign: 'center' }}>
+//               <PercentageBadge 
+//                 value={`${item.lastYear >= 0 ? '+' : ''}${item.lastYear.toFixed(1)}%`}
+//                 type={item.lastYear >= 0 ? 'positive' : 'negative'}
+//               />
+//             </Box>
+//           ))}
+//         </Box>
+
+//         <Box sx={{ bgcolor: COLORS.bgGrey, px: 2, py: 1.5 }}>
+//           <Typography sx={{ fontSize: '12px', color: COLORS.textGrey, lineHeight: 1.5 }}>
+//             {overallGrowthValue >= 0 
+//               ? 'Deposit growth is positive across most categories. Consider maintaining current strategies.'
+//               : 'Some deposit categories showing decline. Review and adjust strategies accordingly.'}
+//           </Typography>
+//         </Box>
+//       </Box>
+//     );
+//   };
+
+//   const renderBranchContent = () => {
+//     if (loading) {
+//       return (
+//         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+//           <Typography>Loading branch data...</Typography>
+//         </Box>
+//       );
+//     }
+
+//     if (error) {
+//       return (
+//         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
+//           <Typography color="error">{error}</Typography>
+//         </Box>
+//       );
+//     }
+
+//     const cellStyle = { flexShrink: 0, paddingRight: '8px' };
+
+//     return (
+//       <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+//         <Box
+//           sx={{
+//             border: `1px solid ${COLORS.border}`,
+//             borderRadius: '12px',
+//             overflow: 'hidden',
+//             display: 'flex',
+//             flexDirection: 'column',
+//           }}
+//         >
+//           <Box sx={{ overflowX: 'auto', width: '100%' }}>
+//             <Box sx={{ minWidth: minTableWidth }}>
+//               {/* Header */}
+//               <Box sx={{ display: 'flex', px: 2, py: 1.5, borderBottom: `1px solid ${COLORS.border}`, bgcolor: '#fff' }}>
+//                 <Typography sx={{ ...cellStyle, width: branchColWidths.branch, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Branch</Typography>
+//                 <Typography sx={{ ...cellStyle, width: branchColWidths.balance, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Balance (₹L)</Typography>
+//                 <Typography sx={{ ...cellStyle, width: branchColWidths.growth, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Growth (₹L)</Typography>
+//                 <Typography sx={{ ...cellStyle, width: branchColWidths.percent, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Growth %</Typography>
+//                 <Typography sx={{ ...cellStyle, width: branchColWidths.accounts, fontSize: '11px', fontWeight: 600, color: COLORS.textGrey, textTransform: 'uppercase' }}>Accounts</Typography>
+//               </Box>
+
+//               {/* Data Rows */}
+//               <Box sx={{ maxHeight: '350px', overflowY: 'auto' }}>
+//                 {apiData.branchData.map((row, index) => (
+//                   <Box
+//                     key={index}
+//                     sx={{
+//                       display: 'flex',
+//                       alignItems: 'center',
+//                       px: 2,
+//                       py: 1.5,
+//                       borderBottom: `1px solid ${COLORS.border}`,
+//                       bgcolor: '#fff',
+//                     }}
+//                   >
+//                     <Typography noWrap sx={{ ...cellStyle, width: branchColWidths.branch, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.name}</Typography>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.balance, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.balance}</Typography>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.growth, fontSize: '13px', fontWeight: 500, color: row.growthColor }}>{row.growthVal}</Typography>
+//                     <Box sx={{ ...cellStyle, width: branchColWidths.percent }}>
+//                       <Box sx={{ bgcolor: row.percentBg, borderRadius: '16px', px: 1, py: 0.5, display: 'inline-block' }}>
+//                         <Typography sx={{ fontSize: '12px', fontWeight: 600, color: row.percentColor, lineHeight: 1 }}>{row.growthPercent}</Typography>
+//                       </Box>
+//                     </Box>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.accounts, fontSize: '13px', fontWeight: 500, color: COLORS.textDark }}>{row.accounts}</Typography>
+//                   </Box>
+//                 ))}
+
+//                 {/* Total Row - FIXED: Now shows GrowthPer value */}
+//                 {apiData.totalData && (
+//                   <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: '#F9FAFB' }}>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.branch, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>Total</Typography>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.balance, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>{apiData.totalData.balance}</Typography>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.growth, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>{apiData.totalData.growth}</Typography>
+//                     <Box sx={{ ...cellStyle, width: branchColWidths.percent }}>
+//                       <Box sx={{ 
+//                         bgcolor: apiData.totalData.growthPercentValue >= 0 ? COLORS.bgGreen : COLORS.bgRed, 
+//                         borderRadius: '16px', 
+//                         px: 1, 
+//                         py: 0.5, 
+//                         display: 'inline-block' 
+//                       }}>
+//                         <Typography sx={{ 
+//                           fontSize: '12px', 
+//                           fontWeight: 600, 
+//                           color: apiData.totalData.growthPercentValue >= 0 ? COLORS.textGreen : COLORS.textRed, 
+//                           lineHeight: 1 
+//                         }}>
+//                           {apiData.totalData.growthPercent}
+//                         </Typography>
+//                       </Box>
+//                     </Box>
+//                     <Typography sx={{ ...cellStyle, width: branchColWidths.accounts, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>{apiData.totalData.accounts}</Typography>
+//                   </Box>
+//                 )}
+//               </Box>
+//             </Box>
+//           </Box>
+//         </Box>
+//       </Box>
+//     );
+//   };
+
+//   // --- Main Render ---
+//   return (
+//     <Modal
+//       open={open}
+//       onClose={onClose}
+//       slotProps={{
+//         backdrop: {
+//           sx: {
+//             backgroundColor: 'rgba(0,0,0,0.5)',
+//           },
+//         },
+//       }}
+//     >
+//       <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+//         <Box
+//           sx={{
+//             position: 'fixed',
+//             bottom: 0,
+//             left: 0,
+//             right: 0,
+//             bgcolor: '#fff',
+//             borderTopLeftRadius: '24px',
+//             borderTopRightRadius: '24px',
+//             width: '100%',
+//             height: 'auto',
+//             maxHeight: '90vh',
+//             display: 'flex',
+//             flexDirection: 'column',
+//             p: '24px',
+//             pb: '32px',
+//             gap: '20px',
+//             boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.1)',
+//             fontFamily: '"Inter", sans-serif',
+//             '@media (min-width: 600px)': {
+//               maxWidth: '500px',
+//               mx: 'auto',
+//               left: 0,
+//               right: 0,
+//               bottom: '16px',
+//               borderRadius: '24px',
+//               borderBottomLeftRadius: '24px',
+//               borderBottomRightRadius: '24px',
+//             }
+//           }}
+//         >
+//           {/* Header */}
+//           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+//             <Box>
+//               <Typography variant="h6" sx={{ fontSize: '18px', fontWeight: 600, color: COLORS.textDark, lineHeight: '28px' }}>
+//                 Deposit Details
+//               </Typography>
+//               <Typography variant="body2" sx={{ fontSize: '14px', color: COLORS.textGrey, fontWeight: 400 }}>
+//                 Comprehensive deposit analysis
+//               </Typography>
+//             </Box>
+//             <IconButton
+//               onClick={onClose}
+//               sx={{
+//                 p: 0.5,
+//                 bgcolor: '#F2F4F7',
+//                 '&:hover': { bgcolor: '#EAECF0' }
+//               }}
+//             >
+//               <CloseIcon sx={{ fontSize: 20, color: '#667085' }} />
+//             </IconButton>
+//           </Box>
+
+//           {/* Custom Tabs */}
+//           <Box sx={{ display: 'flex', gap: 1.5 }}>
+//             {['growth', 'branch'].map((tab) => {
+//               const isActive = activeTab === tab;
+//               return (
+//                 <Box
+//                   key={tab}
+//                   onClick={() => setActiveTab(tab as 'growth' | 'branch')}
+//                   sx={{
+//                     flex: 1,
+//                     bgcolor: isActive ? COLORS.primaryBlue : '#fff',
+//                     border: isActive ? `1px solid ${COLORS.primaryBlue}` : `1px solid ${COLORS.border}`,
+//                     borderRadius: '8px',
+//                     py: 1,
+//                     display: 'flex',
+//                     justifyContent: 'center',
+//                     alignItems: 'center',
+//                     cursor: 'pointer',
+//                     transition: 'all 0.2s',
+//                     boxShadow: isActive ? '0px 1px 2px rgba(16, 24, 40, 0.05)' : 'none'
+//                   }}
+//                 >
+//                   <Typography
+//                     sx={{
+//                       fontSize: '14px',
+//                       color: isActive ? '#fff' : '#344054',
+//                       fontWeight: 600,
+//                       textTransform: 'capitalize'
+//                     }}
+//                   >
+//                     {tab}
+//                   </Typography>
+//                 </Box>
+//               );
+//             })}
+//           </Box>
+
+//           {/* Content Area */}
+//           {activeTab === 'growth' ? renderGrowthContent() : renderBranchContent()}
+//         </Box>
+//       </Slide>
+//     </Modal>
+//   );
+// };
+
+// export default DepositDetailsPopup;
+// ========================= AFTER MAKING SEQUENTIAL API CALLS ======================
 import React, { useState, useEffect } from 'react';
 import {
   Box,
@@ -369,6 +898,8 @@ import {
   IconButton,
   Modal,
   Slide,
+  CircularProgress,
+  LinearProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { getDepositBranchWise, getDepositGrowthWise } from '../../api/services/depositService';
@@ -451,6 +982,9 @@ const PercentageBadge: React.FC<{ value: string; type?: 'positive' | 'negative' 
   );
 };
 
+// Helper function for delays between API calls
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // --- Main Component ---
 const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open }) => {
   const [activeTab, setActiveTab] = useState<'growth' | 'branch'>('growth');
@@ -459,86 +993,10 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
     growthData: [],
     totalData: null
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  // --- API Calls - Fetch both APIs when modal opens ---
-  useEffect(() => {
-    const fetchAllData = async () => {
-      if (!open) return;
-      
-      setLoading(true);
-      setError(null);
-      
-      try {
-        // Fetch both APIs in parallel
-        const [branchResponse, growthResponse] = await Promise.all([
-          getDepositBranchWise(),
-          getDepositGrowthWise()
-        ]);
-
-        let branchData: BranchData[] = [];
-        let totalData = null;
-
-        // Process branch data
-        if (branchResponse.Header.RC === "0") {
-          branchData = Object.entries(branchResponse.BranchWise)
-            .filter(([key]) => key !== 'Total') // Exclude Total from main list
-            .map(([branchName, data]) => {
-              const growthPercent = data.GrowthPer;
-              const isPositive = growthPercent >= 0;
-              return {
-                name: branchName,
-                balance: (data.Balance / 100000).toFixed(1), // Convert to lakhs
-                growthVal: data.Growth >= 0 ? `+${(data.Growth / 100000).toFixed(1)}` : `${(data.Growth / 100000).toFixed(1)}`,
-                growthPercent: `${growthPercent.toFixed(1)}%`,
-                accounts: data.BranchAccs.toString(),
-                growthColor: isPositive ? COLORS.textGreen : COLORS.textRed,
-                percentBg: isPositive ? COLORS.bgGreen : COLORS.bgRed,
-                percentColor: isPositive ? COLORS.textGreen : COLORS.textRed,
-              };
-            });
-
-          // Get total data
-          const totalBranchData = branchResponse.BranchWise.Total;
-          if (totalBranchData) {
-            totalData = {
-              balance: (totalBranchData.Balance / 100000).toFixed(1),
-              growth: totalBranchData.Growth >= 0 ? `+${(totalBranchData.Growth / 100000).toFixed(1)}` : `${(totalBranchData.Growth / 100000).toFixed(1)}`,
-              growthPercent: `${totalBranchData.GrowthPer.toFixed(1)}%`,
-              growthPercentValue: totalBranchData.GrowthPer,
-              accounts: totalBranchData.BranchAccs.toString(),
-            };
-          }
-        }
-
-        // Process growth data
-        let growthData: GrowthData[] = [];
-        if (growthResponse.Header.RC === "0") {
-          growthData = growthResponse.GrowthWise.map(item => ({
-            typeName: item.TypeName,
-            yesterday: item.LastDayPer,
-            lastMonth: item.LastMonthPer,
-            lastYear: item.LastYearPer,
-          }));
-        }
-
-        setApiData({
-          branchData,
-          growthData,
-          totalData
-        });
-
-      } catch (err) {
-        setError('Failed to fetch data');
-        console.error('Error fetching deposit data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllData();
-  }, [open]); // Only depend on open prop
+  const [initialLoad, setInitialLoad] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
 
   const branchColWidths = {
     branch: '140px',
@@ -550,12 +1008,129 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
 
   const minTableWidth = '500px';
 
+  // --- Sequential API Data Fetching ---
+  const fetchAllDataSequentially = async () => {
+    setLoading(true);
+    setError(null);
+    setProgress(0);
+    
+    try {
+      console.group('🚀 Deposit Details Sequential Fetch');
+      
+      // 1️⃣ FETCH DEPOSIT BRANCH WISE
+      console.log('1. Fetching Deposit Branch Wise data...');
+      setProgress(50);
+      const branchResponse = await getDepositBranchWise();
+      await delay(100); // Wait for token update
+      console.log('✅ Deposit Branch Wise loaded');
+      
+      // Process branch data
+      let branchData: BranchData[] = [];
+      let totalData = null;
+
+      if (branchResponse.Header.RC === "0") {
+        branchData = Object.entries(branchResponse.BranchWise)
+          .filter(([key]) => key !== 'Total')
+          .map(([branchName, data]) => {
+            const growthPercent = data.GrowthPer;
+            const isPositive = growthPercent >= 0;
+            return {
+              name: branchName,
+              balance: (data.Balance / 100000).toFixed(1),
+              growthVal: data.Growth >= 0 ? `+${(data.Growth / 100000).toFixed(1)}` : `${(data.Growth / 100000).toFixed(1)}`,
+              growthPercent: `${growthPercent.toFixed(1)}%`,
+              accounts: data.BranchAccs.toString(),
+              growthColor: isPositive ? COLORS.textGreen : COLORS.textRed,
+              percentBg: isPositive ? COLORS.bgGreen : COLORS.bgRed,
+              percentColor: isPositive ? COLORS.textGreen : COLORS.textRed,
+            };
+          });
+
+        // Get total data
+        const totalBranchData = branchResponse.BranchWise.Total;
+        if (totalBranchData) {
+          totalData = {
+            balance: (totalBranchData.Balance / 100000).toFixed(1),
+            growth: totalBranchData.Growth >= 0 ? `+${(totalBranchData.Growth / 100000).toFixed(1)}` : `${(totalBranchData.Growth / 100000).toFixed(1)}`,
+            growthPercent: `${totalBranchData.GrowthPer.toFixed(1)}%`,
+            growthPercentValue: totalBranchData.GrowthPer,
+            accounts: totalBranchData.BranchAccs.toString(),
+          };
+        }
+      }
+
+      // Update branch data immediately
+      setApiData(prev => ({
+        ...prev,
+        branchData,
+        totalData
+      }));
+      await delay(100);
+
+      // 2️⃣ FETCH DEPOSIT GROWTH WISE
+      console.log('2. Fetching Deposit Growth Wise data...');
+      setProgress(100);
+      const growthResponse = await getDepositGrowthWise();
+      console.log('✅ Deposit Growth Wise loaded');
+      
+      // Process growth data
+      let growthData: GrowthData[] = [];
+      if (growthResponse.Header.RC === "0") {
+        growthData = growthResponse.GrowthWise.map(item => ({
+          typeName: item.TypeName,
+          yesterday: item.LastDayPer,
+          lastMonth: item.LastMonthPer,
+          lastYear: item.LastYearPer,
+        }));
+      }
+
+      // Update with growth data
+      setApiData(prev => ({
+        ...prev,
+        growthData
+      }));
+
+      setInitialLoad(true);
+      console.log('🎉 All deposit data loaded sequentially!');
+      console.groupEnd();
+      
+    } catch (err: any) {
+      console.error('❌ Error in sequential deposit data fetch:', err);
+      setError(err.message || 'Failed to load deposit data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Fetch data when popup opens ---
+  useEffect(() => {
+    if (open && !initialLoad) {
+      fetchAllDataSequentially();
+    }
+  }, [open, initialLoad]);
+
+  // --- Reset when popup closes ---
+  useEffect(() => {
+    if (!open) {
+      setApiData({
+        branchData: [],
+        growthData: [],
+        totalData: null
+      });
+      setActiveTab('growth');
+      setInitialLoad(false);
+      setError(null);
+      setProgress(0);
+    }
+  }, [open]);
+
   // --- Render Functions ---
   const renderGrowthContent = () => {
-    if (loading) {
+    if (loading && !initialLoad) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-          <Typography>Loading growth data...</Typography>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>Loading growth data...</Typography>
         </Box>
       );
     }
@@ -676,10 +1251,11 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
   };
 
   const renderBranchContent = () => {
-    if (loading) {
+    if (loading && !initialLoad) {
       return (
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '200px' }}>
-          <Typography>Loading branch data...</Typography>
+          <CircularProgress />
+          <Typography sx={{ ml: 2 }}>Loading branch data...</Typography>
         </Box>
       );
     }
@@ -742,7 +1318,7 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
                   </Box>
                 ))}
 
-                {/* Total Row - FIXED: Now shows GrowthPer value */}
+                {/* Total Row */}
                 {apiData.totalData && (
                   <Box sx={{ display: 'flex', alignItems: 'center', px: 2, py: 1.5, bgcolor: '#F9FAFB' }}>
                     <Typography sx={{ ...cellStyle, width: branchColWidths.branch, fontSize: '13px', fontWeight: 600, color: COLORS.primaryBlue }}>Total</Typography>
@@ -776,6 +1352,83 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
       </Box>
     );
   };
+
+  // Show loading overlay
+  if (loading && !initialLoad) {
+    return (
+      <Modal
+        open={open}
+        onClose={onClose}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(4px)',
+            },
+          },
+        }}
+      >
+        <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              bgcolor: '#fff',
+              borderTopLeftRadius: '24px',
+              borderTopRightRadius: '24px',
+              width: '100%',
+              height: 'auto',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              p: '24px',
+              pb: '32px',
+              gap: '20px',
+              boxShadow: '0px -4px 20px rgba(0, 0, 0, 0.1)',
+              fontFamily: '"Inter", sans-serif',
+              alignItems: 'center',
+              justifyContent: 'center',
+              '@media (min-width: 600px)': {
+                maxWidth: '500px',
+                mx: 'auto',
+                left: 0,
+                right: 0,
+                bottom: '16px',
+                borderRadius: '24px',
+                borderBottomLeftRadius: '24px',
+                borderBottomRightRadius: '24px',
+              }
+            }}
+          >
+            <CircularProgress size={48} />
+            <Typography variant="h6" sx={{ fontFamily: '"Inter", sans-serif', mt: 2 }}>
+              Loading Deposit Data...
+            </Typography>
+            <Box sx={{ width: '80%', mt: 2 }}>
+              <LinearProgress 
+                variant="determinate" 
+                value={progress} 
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontFamily: '"Inter", sans-serif', 
+                  textAlign: 'center', 
+                  mt: 1,
+                  color: 'text.secondary'
+                }}
+              >
+                {progress}% complete
+              </Typography>
+            </Box>
+          </Box>
+        </Slide>
+      </Modal>
+    );
+  }
 
   // --- Main Render ---
   return (
@@ -843,6 +1496,46 @@ const DepositDetailsPopup: React.FC<DepositDetailsPopupProps> = ({ onClose, open
               <CloseIcon sx={{ fontSize: 20, color: '#667085' }} />
             </IconButton>
           </Box>
+
+          {/* Error Message */}
+          {error && (
+            <Box
+              sx={{
+                bgcolor: '#FFE6E6',
+                border: '1px solid #FFCDD2',
+                borderRadius: 1,
+                p: 2,
+                mb: 2,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: '"Inter", sans-serif',
+                  fontSize: 14,
+                  color: '#D32F2F',
+                  textAlign: 'center',
+                }}
+              >
+                {error}
+              </Typography>
+              <Box sx={{ textAlign: 'center', mt: 1 }}>
+                <button 
+                  onClick={fetchAllDataSequentially}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#1976d2',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                >
+                  Retry
+                </button>
+              </Box>
+            </Box>
+          )}
 
           {/* Custom Tabs */}
           <Box sx={{ display: 'flex', gap: 1.5 }}>

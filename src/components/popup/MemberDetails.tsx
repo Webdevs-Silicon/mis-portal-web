@@ -782,6 +782,491 @@
 // };
 
 // export default MemberDetails;
+// import React, { useEffect, useState } from 'react';
+// import {
+//   Box,
+//   Typography,
+//   IconButton,
+//   Card,
+//   CardContent,
+//   Modal,
+//   Slide,
+//   CircularProgress,
+// } from '@mui/material';
+// import CloseIcon from '@mui/icons-material/Close';
+// import {
+//   getMemberClassifications,
+//   getMemberDetails,
+//  type GetMemberResponse,
+//  type GetMemberClassificationsResponse,
+// } from '../../api/services/memberService';
+
+// interface MemberDetailsProps {
+//   onClose: () => void;
+//   open: boolean;
+// }
+
+// interface ClassData {
+//   name: string;
+//   color: string;
+//   members: string;
+//   shareCapital: string;
+//   periodData: {
+//     period: string;
+//     members: string;
+//     capital: string;
+//     borrowers: string;
+//     membersColor?: string;
+//     capitalColor?: string;
+//   }[];
+// }
+
+// const MemberDetails: React.FC<MemberDetailsProps> = ({ onClose, open }) => {
+//   const [classData, setClassData] = useState<ClassData[]>([]);
+//   const [loading, setLoading] = useState<boolean>(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const COLORS = ['#6DC1FF', '#ECCE49', '#4CAF50', '#FDB176', '#BD8BFD'];
+
+//   // =============================
+//   // Fetch API Data
+//   // =============================
+//   useEffect(() => {
+//     if (!open) return;
+
+//     const fetchData = async () => {
+//       try {
+//         setLoading(true);
+//         const [memberRes, classRes] = await Promise.all([
+//           getMemberDetails(),
+//           getMemberClassifications(),
+//         ]);
+
+//         const formattedData = mapApiData(memberRes, classRes);
+//         setClassData(formattedData);
+//         setError(null);
+//       } catch (err) {
+//         console.error(err);
+//         setError('Failed to load data.');
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchData();
+//   }, [open]);
+
+//   // =============================
+//   // Map API Data to UI
+//   // =============================
+//   const mapApiData = (
+//   memberRes: GetMemberResponse,
+//   classRes: GetMemberClassificationsResponse
+// ): ClassData[] => {
+//   const entries = Object.entries(memberRes.MemberDetails).filter(([k]) => k !== 'Main');
+
+//   console.log("🟩 Member Details:", memberRes.MemberDetails);
+//   console.log("🟨 MemberClassifications Details:", classRes.MemberDetails);
+
+//   return entries
+//     .map(([, value], idx) => {
+//       const classInfo = value as any;
+//       const className: string = classInfo.Class;
+//       const color = COLORS[idx % COLORS.length];
+
+//       const classInApi = classRes.MemberDetails.Main?.Class;
+//       console.log("🔹 Checking class:", className, "API Class:", classInApi);
+
+//       // Normalize class names for comparison
+//       const normalizedClassName = className.replace(/class/i, '').trim().toLowerCase();
+//       const normalizedApiClass = classInApi?.trim().toLowerCase();
+
+//       const hasClassData = normalizedApiClass === normalizedClassName;
+
+//       console.log(`🔍 ${className} => Match:`, hasClassData);
+
+//       if (!hasClassData) {
+//         console.log(`🚫 Skipping ${className} (no data in MemberClassifications)`);
+//         return null;
+//       }
+
+//       const stats = classRes.MemberDetails;
+//       const periodData = [
+//         {
+//           period: 'Yesterday',
+//           members: (stats['0'] as any)?.YesterdayCount?.toLocaleString() ?? '-',
+//           capital:
+//             ((stats['0'] as any)?.YesterdayCapital / 100000)?.toFixed(2) ?? '-',
+//           borrowers: (stats['0'] as any)?.YesterdayBor?.toLocaleString() ?? '-',
+//         },
+//         {
+//           period: 'Last Month',
+//           members: (stats['1'] as any)?.LastMonthCount?.toLocaleString() ?? '-',
+//           capital:
+//             ((stats['1'] as any)?.LastMonthCapital / 100000)?.toFixed(2) ?? '-',
+//           borrowers: (stats['1'] as any)?.LastMonthBor?.toLocaleString() ?? '-',
+//         },
+//         {
+//           period: 'Last Year',
+//           members: (stats['2'] as any)?.LastYearCount?.toLocaleString() ?? '-',
+//           capital:
+//             ((stats['2'] as any)?.LastYearCapital / 100000)?.toFixed(2) ?? '-',
+//           borrowers: (stats['2'] as any)?.LastYearBor?.toLocaleString() ?? '-',
+//         },
+//       ];
+
+//       console.log(`✅ Including ${className} in UI.`);
+
+//       return {
+//         name: className,
+//         color,
+//         members: classInfo.MemberCount?.toLocaleString() ?? '-',
+//         shareCapital: `₹ ${(classInfo.ShareBal / 100000).toFixed(2)}L`,
+//         periodData,
+//       };
+//     })
+//     .filter(Boolean) as ClassData[];
+// };
+
+//   // const mapApiData = (
+//   //   memberRes: GetMemberResponse,
+//   //   classRes: GetMemberClassificationsResponse
+//   // ): ClassData[] => {
+//   //   const entries = Object.entries(memberRes.MemberDetails).filter(([k]) => k !== 'Main');
+
+//   //   return entries
+//   //     .map(([key, value], idx) => {
+//   //       const classInfo = value as any;
+//   //       const className = classInfo.Class;
+//   //       const color = COLORS[idx % COLORS.length];
+
+//   //       // Show only if classification data exists for this class
+//   //       const classInApi = classRes.MemberDetails.Main?.Class;
+//   //       const hasClassData =
+//   //         classInApi &&
+//   //         className.toLowerCase().includes(classInApi.toLowerCase());
+
+//   //       if (!hasClassData) {
+//   //         // Do not include this class at all
+//   //         return null;
+//   //       }
+
+//   //       const stats = classRes.MemberDetails;
+//   //       const periodData = [
+//   //         {
+//   //           period: 'Yesterday',
+//   //           members: (stats['0'] as any)?.YesterdayCount?.toLocaleString() ?? '-',
+//   //           capital:
+//   //             ((stats['0'] as any)?.YesterdayCapital / 100000)?.toFixed(2) ?? '-',
+//   //           borrowers: (stats['0'] as any)?.YesterdayBor?.toLocaleString() ?? '-',
+//   //         },
+//   //         {
+//   //           period: 'Last Month',
+//   //           members: (stats['1'] as any)?.LastMonthCount?.toLocaleString() ?? '-',
+//   //           capital:
+//   //             ((stats['1'] as any)?.LastMonthCapital / 100000)?.toFixed(2) ?? '-',
+//   //           borrowers: (stats['1'] as any)?.LastMonthBor?.toLocaleString() ?? '-',
+//   //         },
+//   //         {
+//   //           period: 'Last Year',
+//   //           members: (stats['2'] as any)?.LastYearCount?.toLocaleString() ?? '-',
+//   //           capital:
+//   //             ((stats['2'] as any)?.LastYearCapital / 100000)?.toFixed(2) ?? '-',
+//   //           borrowers: (stats['2'] as any)?.LastYearBor?.toLocaleString() ?? '-',
+//   //         },
+//   //       ];
+
+//   //       return {
+//   //         name: className,
+//   //         color,
+//   //         members: classInfo.MemberCount?.toLocaleString() ?? '-',
+//   //         shareCapital: `₹ ${(classInfo.ShareBal / 100000).toFixed(2)}L`,
+//   //         periodData,
+//   //       };
+//   //     })
+//   //     .filter(Boolean) as ClassData[]; // remove nulls
+//   // };
+
+//   // =============================
+//   // UI Rendering
+//   // =============================
+//   const columnHeaders = ['Period', 'Members', 'Capital (₹L)', 'Borrowers'];
+
+//   const DataRow: React.FC<{
+//     period: string;
+//     members: string;
+//     capital: string;
+//     borrowers: string;
+//     membersColor?: string;
+//     capitalColor?: string;
+//     isLast?: boolean;
+//   }> = ({
+//     period,
+//     members,
+//     capital,
+//     borrowers,
+//     membersColor,
+//     capitalColor,
+//     isLast,
+//   }) => (
+//     <Box
+//       sx={{
+//         display: 'flex',
+//         alignItems: 'center',
+//         pt: 1.75,
+//         pb: isLast ? 0.3 : 1.75,
+//         px: 1.5,
+//         borderBottom: isLast ? 'none' : '1px solid',
+//         borderColor: 'divider',
+//         fontSize: '14px',
+//       }}
+//     >
+//       <Typography sx={{ width: 90, fontWeight: 500, fontSize: 'inherit' }}>
+//         {period}
+//       </Typography>
+//       <Typography
+//         sx={{
+//           width: 70,
+//           fontWeight: 500,
+//           color: membersColor || 'text.primary',
+//           fontSize: 'inherit',
+//         }}
+//       >
+//         {members}
+//       </Typography>
+//       <Typography
+//         sx={{
+//           width: 86,
+//           fontWeight: 500,
+//           color: capitalColor || 'text.primary',
+//           fontSize: 'inherit',
+//         }}
+//       >
+//         {capital}
+//       </Typography>
+//       <Typography sx={{ width: 74, fontWeight: 500, fontSize: 'inherit' }}>
+//         {borrowers}
+//       </Typography>
+//     </Box>
+//   );
+
+//   const HeaderRow = () => (
+//     <Box
+//       sx={{
+//         display: 'flex',
+//         alignItems: 'flex-start',
+//         py: 1.25,
+//         px: 1.5,
+//         borderBottom: '1px solid',
+//         borderColor: 'divider',
+//       }}
+//     >
+//       {columnHeaders.map((header) => (
+//         <Typography
+//           key={header}
+//           variant="caption"
+//           sx={{
+//             textTransform: 'uppercase',
+//             color: 'text.secondary',
+//             fontWeight: 500,
+//             fontSize: '10px',
+//             width:
+//               header === 'Period'
+//                 ? 90
+//                 : header === 'Members'
+//                 ? 70
+//                 : header === 'Capital (₹L)'
+//                 ? 86
+//                 : 74,
+//           }}
+//         >
+//           {header}
+//         </Typography>
+//       ))}
+//     </Box>
+//   );
+
+//   return (
+//     <Modal
+//       open={open}
+//       onClose={onClose}
+//       slotProps={{
+//         backdrop: {
+//           sx: {
+//             backgroundColor: 'rgba(0,0,0,0.4)',
+//             backdropFilter: 'blur(4px)',
+//           },
+//         },
+//       }}
+//     >
+//       <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+//         <Box
+//           sx={{
+//             position: 'fixed',
+//             bottom: 0,
+//             left: 0,
+//             right: 0,
+//             width: '100%',
+//             maxWidth: 480,
+//             mx: 'auto',
+//             mb: { xs: 1.5, sm: 2 },
+//             background: 'white',
+//             borderTopLeftRadius: 24,
+//             borderTopRightRadius: 24,
+//             boxShadow: '0 -4px 20px rgba(0,0,0,0.2)',
+//             overflow: 'hidden',
+//             maxHeight: '85vh',
+//             display: 'flex',
+//             flexDirection: 'column',
+//             p: 3,
+//             pb: 4,
+//           }}
+//         >
+//           {/* Header */}
+//           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, flexShrink: 0 }}>
+//             <Box sx={{ flex: 1 }}>
+//               <Typography variant="h6" fontWeight={600} sx={{ fontSize: '18px' }}>
+//                 Member Details
+//               </Typography>
+//               <Typography variant="body2" color="text.secondary" sx={{ fontSize: '14px' }}>
+//                 Comprehensive membership analysis
+//               </Typography>
+//             </Box>
+//             <IconButton onClick={onClose} sx={{ background: '#F6F6F6', borderRadius: '50%' }}>
+//               <CloseIcon sx={{ fontSize: 20 }} />
+//             </IconButton>
+//           </Box>
+
+//           {/* Content */}
+//           <Box
+//             sx={{
+//               overflowY: 'auto',
+//               flex: 1,
+//               width: '100%',
+//               py: 1,
+//               pr: 0.5,
+//               '&::-webkit-scrollbar': { width: '6px' },
+//               '&::-webkit-scrollbar-track': {
+//                 background: 'rgba(219, 219, 219, 0.3)',
+//                 borderRadius: '100px',
+//               },
+//               '&::-webkit-scrollbar-thumb': {
+//                 background: 'rgba(219, 219, 219, 1.00)',
+//                 borderRadius: '100px',
+//               },
+//             }}
+//           >
+//             {loading ? (
+//               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+//                 <CircularProgress size={28} />
+//               </Box>
+//             ) : error ? (
+//               <Typography color="error" align="center">
+//                 {error}
+//               </Typography>
+//             ) : (
+//               classData.map((classItem) => (
+//                 <Card
+//                   key={classItem.name}
+//                   variant="outlined"
+//                   sx={{
+//                     width: '100%',
+//                     borderRadius: 3,
+//                     overflow: 'hidden',
+//                     mb: 2,
+//                     borderColor: '#ececec',
+//                   }}
+//                 >
+//                   <CardContent sx={{ p: 0, '&:last-child': { pb: 0 } }}>
+//                     {/* Header */}
+//                     <Box
+//                       sx={{
+//                         display: 'flex',
+//                         alignItems: 'center',
+//                         py: 1.25,
+//                         px: 1.5,
+//                         borderBottom: '1px solid',
+//                         borderColor: 'divider',
+//                       }}
+//                     >
+//                       <Box sx={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+//                         <Box
+//                           sx={{
+//                             background: classItem.color,
+//                             borderRadius: '50%',
+//                             height: 8,
+//                             width: 8,
+//                             mr: 1,
+//                             flexShrink: 0,
+//                           }}
+//                         />
+//                         <Typography fontWeight={600} sx={{ fontSize: '16px' }}>
+//                           {classItem.name}
+//                         </Typography>
+//                       </Box>
+
+//                       <Box sx={{ display: 'flex', gap: 2 }}>
+//                         <Box sx={{ textAlign: 'right' }}>
+//                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>
+//                             Members
+//                           </Typography>
+//                           <Typography fontWeight={600} sx={{ fontSize: '14px' }}>
+//                             {classItem.members}
+//                           </Typography>
+//                         </Box>
+
+//                         <Box sx={{ textAlign: 'right' }}>
+//                           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '10px' }}>
+//                             Share Capital (₹L)
+//                           </Typography>
+//                           <Typography fontWeight={600} sx={{ fontSize: '14px' }}>
+//                             {classItem.shareCapital}
+//                           </Typography>
+//                         </Box>
+//                       </Box>
+//                     </Box>
+
+//                     {/* Table */}
+//                     <HeaderRow />
+//                     {classItem.periodData.map((row, index) => (
+//                       <DataRow
+//                         key={index}
+//                         {...row}
+//                         isLast={index === classItem.periodData.length - 1}
+//                       />
+//                     ))}
+//                   </CardContent>
+//                 </Card>
+//               ))
+//             )}
+
+//             {/* Footer */}
+//             <Box
+//               sx={{
+//                 background: '#E9FCEE',
+//                 borderRadius: 2,
+//                 py: 1.25,
+//                 px: 1.5,
+//               }}
+//             >
+//               <Typography
+//                 variant="caption"
+//                 color="#2A8240"
+//                 fontWeight={600}
+//                 sx={{ fontSize: '12px' }}
+//               >
+//                 +13.7% YoY Growth
+//               </Typography>
+//             </Box>
+//           </Box>
+//         </Box>
+//       </Slide>
+//     </Modal>
+//   );
+// };
+
+// export default MemberDetails;
+// ========================= AFTER MAKING SEQUENTIAL API CALLS ======================
 import React, { useEffect, useState } from 'react';
 import {
   Box,
@@ -792,13 +1277,14 @@ import {
   Modal,
   Slide,
   CircularProgress,
+  LinearProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import {
   getMemberClassifications,
   getMemberDetails,
- type GetMemberResponse,
- type GetMemberClassificationsResponse,
+  type GetMemberResponse,
+  type GetMemberClassificationsResponse,
 } from '../../api/services/memberService';
 
 interface MemberDetailsProps {
@@ -821,171 +1307,150 @@ interface ClassData {
   }[];
 }
 
+// Helper function for delays between API calls
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 const MemberDetails: React.FC<MemberDetailsProps> = ({ onClose, open }) => {
   const [classData, setClassData] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialLoad, setInitialLoad] = useState<boolean>(false);
+  const [progress, setProgress] = useState<number>(0);
 
   const COLORS = ['#6DC1FF', '#ECCE49', '#4CAF50', '#FDB176', '#BD8BFD'];
 
   // =============================
-  // Fetch API Data
+  // Sequential API Data Fetching
+  // =============================
+  const fetchAllDataSequentially = async () => {
+    setLoading(true);
+    setError(null);
+    setProgress(0);
+    
+    try {
+      console.group('🚀 Member Details Sequential Fetch');
+      
+      // 1️⃣ FETCH MEMBER DETAILS
+      console.log('1. Fetching Member Details...');
+      setProgress(50);
+      const memberRes = await getMemberDetails();
+      await delay(100); // Wait for token update
+      console.log('✅ Member Details loaded');
+      
+      // 2️⃣ FETCH MEMBER CLASSIFICATIONS
+      console.log('2. Fetching Member Classifications...');
+      setProgress(100);
+      const classRes = await getMemberClassifications();
+      console.log('✅ Member Classifications loaded');
+      
+      // Process and format data
+      const formattedData = mapApiData(memberRes, classRes);
+      setClassData(formattedData);
+      
+      setInitialLoad(true);
+      console.log('🎉 All member data loaded sequentially!');
+      console.groupEnd();
+      
+    } catch (err: any) {
+      console.error('❌ Error in sequential member data fetch:', err);
+      setError(err.message || 'Failed to load member data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // =============================
+  // Fetch data when popup opens
   // =============================
   useEffect(() => {
-    if (!open) return;
+    if (open && !initialLoad) {
+      fetchAllDataSequentially();
+    }
+  }, [open, initialLoad]);
 
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [memberRes, classRes] = await Promise.all([
-          getMemberDetails(),
-          getMemberClassifications(),
-        ]);
-
-        const formattedData = mapApiData(memberRes, classRes);
-        setClassData(formattedData);
-        setError(null);
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
+  // =============================
+  // Reset when popup closes
+  // =============================
+  useEffect(() => {
+    if (!open) {
+      setClassData([]);
+      setInitialLoad(false);
+      setError(null);
+      setProgress(0);
+    }
   }, [open]);
 
   // =============================
   // Map API Data to UI
   // =============================
   const mapApiData = (
-  memberRes: GetMemberResponse,
-  classRes: GetMemberClassificationsResponse
-): ClassData[] => {
-  const entries = Object.entries(memberRes.MemberDetails).filter(([k]) => k !== 'Main');
+    memberRes: GetMemberResponse,
+    classRes: GetMemberClassificationsResponse
+  ): ClassData[] => {
+    const entries = Object.entries(memberRes.MemberDetails).filter(([k]) => k !== 'Main');
 
-  console.log("🟩 Member Details:", memberRes.MemberDetails);
-  console.log("🟨 MemberClassifications Details:", classRes.MemberDetails);
+    console.log("🟩 Member Details:", memberRes.MemberDetails);
+    console.log("🟨 MemberClassifications Details:", classRes.MemberDetails);
 
-  return entries
-    .map(([key, value], idx) => {
-      const classInfo = value as any;
-      const className: string = classInfo.Class;
-      const color = COLORS[idx % COLORS.length];
+    return entries
+      .map(([, value], idx) => {
+        const classInfo = value as any;
+        const className: string = classInfo.Class;
+        const color = COLORS[idx % COLORS.length];
 
-      const classInApi = classRes.MemberDetails.Main?.Class;
-      console.log("🔹 Checking class:", className, "API Class:", classInApi);
+        const classInApi = classRes.MemberDetails.Main?.Class;
+        console.log("🔹 Checking class:", className, "API Class:", classInApi);
 
-      // Normalize class names for comparison
-      const normalizedClassName = className.replace(/class/i, '').trim().toLowerCase();
-      const normalizedApiClass = classInApi?.trim().toLowerCase();
+        // Normalize class names for comparison
+        const normalizedClassName = className.replace(/class/i, '').trim().toLowerCase();
+        const normalizedApiClass = classInApi?.trim().toLowerCase();
 
-      const hasClassData = normalizedApiClass === normalizedClassName;
+        const hasClassData = normalizedApiClass === normalizedClassName;
 
-      console.log(`🔍 ${className} => Match:`, hasClassData);
+        console.log(`🔍 ${className} => Match:`, hasClassData);
 
-      if (!hasClassData) {
-        console.log(`🚫 Skipping ${className} (no data in MemberClassifications)`);
-        return null;
-      }
+        if (!hasClassData) {
+          console.log(`🚫 Skipping ${className} (no data in MemberClassifications)`);
+          return null;
+        }
 
-      const stats = classRes.MemberDetails;
-      const periodData = [
-        {
-          period: 'Yesterday',
-          members: (stats['0'] as any)?.YesterdayCount?.toLocaleString() ?? '-',
-          capital:
-            ((stats['0'] as any)?.YesterdayCapital / 100000)?.toFixed(2) ?? '-',
-          borrowers: (stats['0'] as any)?.YesterdayBor?.toLocaleString() ?? '-',
-        },
-        {
-          period: 'Last Month',
-          members: (stats['1'] as any)?.LastMonthCount?.toLocaleString() ?? '-',
-          capital:
-            ((stats['1'] as any)?.LastMonthCapital / 100000)?.toFixed(2) ?? '-',
-          borrowers: (stats['1'] as any)?.LastMonthBor?.toLocaleString() ?? '-',
-        },
-        {
-          period: 'Last Year',
-          members: (stats['2'] as any)?.LastYearCount?.toLocaleString() ?? '-',
-          capital:
-            ((stats['2'] as any)?.LastYearCapital / 100000)?.toFixed(2) ?? '-',
-          borrowers: (stats['2'] as any)?.LastYearBor?.toLocaleString() ?? '-',
-        },
-      ];
+        const stats = classRes.MemberDetails;
+        const periodData = [
+          {
+            period: 'Yesterday',
+            members: (stats['0'] as any)?.YesterdayCount?.toLocaleString() ?? '-',
+            capital:
+              ((stats['0'] as any)?.YesterdayCapital / 100000)?.toFixed(2) ?? '-',
+            borrowers: (stats['0'] as any)?.YesterdayBor?.toLocaleString() ?? '-',
+          },
+          {
+            period: 'Last Month',
+            members: (stats['1'] as any)?.LastMonthCount?.toLocaleString() ?? '-',
+            capital:
+              ((stats['1'] as any)?.LastMonthCapital / 100000)?.toFixed(2) ?? '-',
+            borrowers: (stats['1'] as any)?.LastMonthBor?.toLocaleString() ?? '-',
+          },
+          {
+            period: 'Last Year',
+            members: (stats['2'] as any)?.LastYearCount?.toLocaleString() ?? '-',
+            capital:
+              ((stats['2'] as any)?.LastYearCapital / 100000)?.toFixed(2) ?? '-',
+            borrowers: (stats['2'] as any)?.LastYearBor?.toLocaleString() ?? '-',
+          },
+        ];
 
-      console.log(`✅ Including ${className} in UI.`);
+        console.log(`✅ Including ${className} in UI.`);
 
-      return {
-        name: className,
-        color,
-        members: classInfo.MemberCount?.toLocaleString() ?? '-',
-        shareCapital: `₹ ${(classInfo.ShareBal / 100000).toFixed(2)}L`,
-        periodData,
-      };
-    })
-    .filter(Boolean) as ClassData[];
-};
-
-  // const mapApiData = (
-  //   memberRes: GetMemberResponse,
-  //   classRes: GetMemberClassificationsResponse
-  // ): ClassData[] => {
-  //   const entries = Object.entries(memberRes.MemberDetails).filter(([k]) => k !== 'Main');
-
-  //   return entries
-  //     .map(([key, value], idx) => {
-  //       const classInfo = value as any;
-  //       const className = classInfo.Class;
-  //       const color = COLORS[idx % COLORS.length];
-
-  //       // Show only if classification data exists for this class
-  //       const classInApi = classRes.MemberDetails.Main?.Class;
-  //       const hasClassData =
-  //         classInApi &&
-  //         className.toLowerCase().includes(classInApi.toLowerCase());
-
-  //       if (!hasClassData) {
-  //         // Do not include this class at all
-  //         return null;
-  //       }
-
-  //       const stats = classRes.MemberDetails;
-  //       const periodData = [
-  //         {
-  //           period: 'Yesterday',
-  //           members: (stats['0'] as any)?.YesterdayCount?.toLocaleString() ?? '-',
-  //           capital:
-  //             ((stats['0'] as any)?.YesterdayCapital / 100000)?.toFixed(2) ?? '-',
-  //           borrowers: (stats['0'] as any)?.YesterdayBor?.toLocaleString() ?? '-',
-  //         },
-  //         {
-  //           period: 'Last Month',
-  //           members: (stats['1'] as any)?.LastMonthCount?.toLocaleString() ?? '-',
-  //           capital:
-  //             ((stats['1'] as any)?.LastMonthCapital / 100000)?.toFixed(2) ?? '-',
-  //           borrowers: (stats['1'] as any)?.LastMonthBor?.toLocaleString() ?? '-',
-  //         },
-  //         {
-  //           period: 'Last Year',
-  //           members: (stats['2'] as any)?.LastYearCount?.toLocaleString() ?? '-',
-  //           capital:
-  //             ((stats['2'] as any)?.LastYearCapital / 100000)?.toFixed(2) ?? '-',
-  //           borrowers: (stats['2'] as any)?.LastYearBor?.toLocaleString() ?? '-',
-  //         },
-  //       ];
-
-  //       return {
-  //         name: className,
-  //         color,
-  //         members: classInfo.MemberCount?.toLocaleString() ?? '-',
-  //         shareCapital: `₹ ${(classInfo.ShareBal / 100000).toFixed(2)}L`,
-  //         periodData,
-  //       };
-  //     })
-  //     .filter(Boolean) as ClassData[]; // remove nulls
-  // };
+        return {
+          name: className,
+          color,
+          members: classInfo.MemberCount?.toLocaleString() ?? '-',
+          shareCapital: `₹ ${(classInfo.ShareBal / 100000).toFixed(2)}L`,
+          periodData,
+        };
+      })
+      .filter(Boolean) as ClassData[];
+  };
 
   // =============================
   // UI Rendering
@@ -1086,6 +1551,75 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({ onClose, open }) => {
     </Box>
   );
 
+  // Show loading overlay
+  if (loading && !initialLoad) {
+    return (
+      <Modal
+        open={open}
+        onClose={onClose}
+        slotProps={{
+          backdrop: {
+            sx: {
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(4px)',
+            },
+          },
+        }}
+      >
+        <Slide direction="up" in={open} mountOnEnter unmountOnExit>
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              width: '100%',
+              maxWidth: 480,
+              mx: 'auto',
+              mb: { xs: 1.5, sm: 2 },
+              background: 'white',
+              borderTopLeftRadius: 24,
+              borderTopRightRadius: 24,
+              boxShadow: '0 -4px 20px rgba(0,0,0,0.2)',
+              overflow: 'hidden',
+              maxHeight: '85vh',
+              display: 'flex',
+              flexDirection: 'column',
+              p: 3,
+              pb: 4,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+            }}
+          >
+            <CircularProgress size={48} />
+            <Typography variant="h6" sx={{ fontFamily: 'DM Sans' }}>
+              Loading Member Data...
+            </Typography>
+            <Box sx={{ width: '80%', mt: 2 }}>
+              <LinearProgress 
+                variant="determinate" 
+                value={progress} 
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  fontFamily: 'DM Sans', 
+                  textAlign: 'center', 
+                  mt: 1,
+                  color: 'text.secondary'
+                }}
+              >
+                {progress}% complete
+              </Typography>
+            </Box>
+          </Box>
+        </Slide>
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       open={open}
@@ -1137,6 +1671,46 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({ onClose, open }) => {
             </IconButton>
           </Box>
 
+          {/* Error Message */}
+          {error && (
+            <Box
+              sx={{
+                bgcolor: '#FFE6E6',
+                border: '1px solid #FFCDD2',
+                borderRadius: 1,
+                p: 2,
+                mb: 2,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: 'DM Sans',
+                  fontSize: 14,
+                  color: '#D32F2F',
+                  textAlign: 'center',
+                }}
+              >
+                {error}
+              </Typography>
+              <Box sx={{ textAlign: 'center', mt: 1 }}>
+                <button 
+                  onClick={fetchAllDataSequentially}
+                  style={{
+                    padding: '6px 12px',
+                    backgroundColor: '#1976d2',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '14px',
+                  }}
+                >
+                  Retry
+                </button>
+              </Box>
+            </Box>
+          )}
+
           {/* Content */}
           <Box
             sx={{
@@ -1160,7 +1734,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({ onClose, open }) => {
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                 <CircularProgress size={28} />
               </Box>
-            ) : error ? (
+            ) : error && !loading ? (
               <Typography color="error" align="center">
                 {error}
               </Typography>
