@@ -333,50 +333,53 @@
 // }
 // hooks/useDashboardData.ts
 import { useState, useEffect } from "react";
-import { loginDetails,type LoginResponse } from "../api/services/authService";
+import { loginDetails
+  
+  // type LoginResponse 
+} from "../api/services/authService";
 import {
   getProfitAndLoss,
   getFluidOverview,
   getWorkingCapitalOverview,
   getOverDueOverview,
   getLdrOverview,
-  type GetPerformanceOverviewResponse,
-  type GetFluidOverviewResponse,
-  type GetWorkingCapitalOverviewResponse,
-  type GetOverdueOverviewResponse,
-  type GetLDROverviewResponse,
+  // type GetPerformanceOverviewResponse,
+  // type GetFluidOverviewResponse,
+  // type GetWorkingCapitalOverviewResponse,
+  // type GetOverdueOverviewResponse,
+  // type GetLDROverviewResponse,
 } from "../api/services/performanceService";
 import {
   getLoanSummary,
-  type GetLoanSummaryResponse,
+  // type GetLoanSummaryResponse,
 } from "../api/services/loanService";
 import {
   getDepositSummary,
-  type GetDepositSummaryResponse,
+  // type GetDepositSummaryResponse,
 } from "../api/services/depositService";
 import {
   getAssetSummary,
-  type GetAssetSummaryResponse,
+  // type GetAssetSummaryResponse,
 } from "../api/services/assetService";
 import {
   getMemberDetails,
-  type GetMemberResponse,
+  // type GetMemberResponse,
 } from "../api/services/memberService";
 import {
   getBorrowSummary,
-  type GetBorrowSummaryResponse,
+  // type GetBorrowSummaryResponse,
 } from "../api/services/borrowService";
 import {
   getBranchDetails,
-  type GetBranchDetailsResponse,
+  // type GetBranchDetailsResponse,
 } from "../api/services/branchService";
 import {
   getDefaulterSummary,
-  type GetTopDefaulterSummaryResponse,
+  // type GetTopDefaulterSummaryResponse,
 } from "../api/services/defaultersService";
 import {
   getLatestEvent,
-  type GetLatestEventResponse,
+  // type GetLatestEventResponse,
 } from "../api/services/eventService";
 
 // ===========================
@@ -596,11 +599,16 @@ export function useDashboardData(): DashboardData {
         const profileResponse = await loginDetails();
         if (!isMounted) return;
         
+        // const profileData: ProfileData = {
+        //   name: profileResponse.DirectorDetails[0]?.Name ?? "",
+        //   photo: profileResponse.DirectorDetails[1]?.Photo ?? "",
+        //   lastLogin: profileResponse.DirectorDetails[2]?.Date ?? "",
+        // };
         const profileData: ProfileData = {
-          name: profileResponse.DirectorDetails[0]?.Name ?? "",
-          photo: profileResponse.DirectorDetails[1]?.Photo ?? "",
-          lastLogin: profileResponse.DirectorDetails[2]?.Date ?? "",
-        };
+  name: profileResponse?.DirectorDetails?.[0]?.Name ?? "",
+  photo: profileResponse?.DirectorDetails?.[1]?.Photo ?? "",
+  lastLogin: profileResponse?.DirectorDetails?.[2]?.Date ?? "",
+};
         
         setData(prev => ({
           ...prev,
@@ -695,15 +703,25 @@ export function useDashboardData(): DashboardData {
         const loanResponse = await getLoanSummary();
         if (!isMounted) return;
         
-        const loanClass = loanResponse.LoanClass;
-        const loanClassificationData = Object.entries(loanClass)
-          .filter(([key]) => key !== "Main")
-          .map(([key, value]: [string, any]) => ({
-            label: value.TypeName ?? key,
-            amount: value.Amount ?? 0,
-            percent: value.Percent ?? 0,
-            percentage: value.Percentage ?? 0,
-          }));
+        // const loanClass = loanResponse.LoanClass;
+        // const loanClassificationData = Object.entries(loanClass)
+        //   .filter(([key]) => key !== "Main")
+        //   .map(([key, value]: [string, any]) => ({
+        //     label: value.TypeName ?? key,
+        //     amount: value.Amount ?? 0,
+        //     percent: value.Percent ?? 0,
+        //     percentage: value.Percentage ?? 0,
+        //   }));
+        const loanClass = loanResponse?.LoanClass ?? {};
+const loanClassificationData = Object.entries(loanClass)
+  .filter(([key]) => key !== "Main")
+  .map(([key, value]: [string, any]) => ({
+    label: value?.TypeName ?? key,
+    amount: value?.Amount ?? 0,
+    percent: value?.Percent ?? 0,
+    percentage: value?.Percentage ?? 0,
+  }));
+
         
         setData(prev => ({
           ...prev,
@@ -721,15 +739,25 @@ export function useDashboardData(): DashboardData {
         const depositResponse = await getDepositSummary();
         if (!isMounted) return;
         
-        const depositClass = depositResponse.DepositClass;
-        const depositClassificationData = Object.entries(depositClass)
-          .filter(([key]) => key !== "Main")
-          .map(([key, value]: [string, any]) => ({
-            label: value.TypeName ?? key,
-            amount: value.Amount ?? 0,
-            percent: value.Percent ?? 0,
-            percentage: value.Percentage ?? 0,
-          }));
+        // const depositClass = depositResponse.DepositClass;
+        // const depositClassificationData = Object.entries(depositClass)
+        //   .filter(([key]) => key !== "Main")
+        //   .map(([key, value]: [string, any]) => ({
+        //     label: value.TypeName ?? key,
+        //     amount: value.Amount ?? 0,
+        //     percent: value.Percent ?? 0,
+        //     percentage: value.Percentage ?? 0,
+        //   }));
+        const depositClass = depositResponse?.DepositClass ?? {};
+const depositClassificationData = Object.entries(depositClass)
+  .filter(([key]) => key !== "Main")
+  .map(([key, value]: [string, any]) => ({
+    label: value?.TypeName ?? key,
+    amount: value?.Amount ?? 0,
+    percent: value?.Percent ?? 0,
+    percentage: value?.Percentage ?? 0,
+  }));
+
         
         setData(prev => ({
           ...prev,
@@ -747,15 +775,25 @@ export function useDashboardData(): DashboardData {
         const assetResponse = await getAssetSummary();
         if (!isMounted) return;
         
-        const assetClass = assetResponse.Asset;
-        const assetClassificationData = Object.entries(assetClass)
-          .filter(([key]) => key !== "Main")
-          .map(([key, value]: [string, any]) => ({
-            label: value.TypeName ?? key,
-            balance: value.Balance ?? 0,
-            percentage: value.Percentage ?? 0,
-            yesterdayPercentage: value.YesterdayPer ?? 0,
-          }));
+        // const assetClass = assetResponse.Asset;
+        // const assetClassificationData = Object.entries(assetClass)
+        //   .filter(([key]) => key !== "Main")
+        //   .map(([key, value]: [string, any]) => ({
+        //     label: value.TypeName ?? key,
+        //     balance: value.Balance ?? 0,
+        //     percentage: value.Percentage ?? 0,
+        //     yesterdayPercentage: value.YesterdayPer ?? 0,
+        //   }));
+        const assetClass = assetResponse?.Asset ?? {};
+const assetClassificationData = Object.entries(assetClass)
+  .filter(([key]) => key !== "Main")
+  .map(([key, value]: [string, any]) => ({
+    label: value?.TypeName ?? key,
+    balance: value?.Balance ?? 0,
+    percentage: value?.Percentage ?? 0,
+    yesterdayPercentage: value?.YesterdayPer ?? 0,
+  }));
+
         
         setData(prev => ({
           ...prev,
@@ -773,15 +811,25 @@ export function useDashboardData(): DashboardData {
         const memberResponse = await getMemberDetails();
         if (!isMounted) return;
         
-        const memberDetails = memberResponse.MemberDetails;
-        const memberClassificationData = Object.entries(memberDetails)
-          .filter(([key]) => key !== "Main")
-          .map(([, value]: [string, any]) => ({
-            label: value.Class,
-            percentage: value.ClassPercentage,
-            memberCount: value.MemberCount,
-            shareBalance: value.ShareBal,
-          }));
+        // const memberDetails = memberResponse.MemberDetails;
+        // const memberClassificationData = Object.entries(memberDetails)
+        //   .filter(([key]) => key !== "Main")
+        //   .map(([, value]: [string, any]) => ({
+        //     label: value.Class,
+        //     percentage: value.ClassPercentage,
+        //     memberCount: value.MemberCount,
+        //     shareBalance: value.ShareBal,
+        //   }));
+        const memberDetails = memberResponse?.MemberDetails ?? {};
+const memberClassificationData = Object.entries(memberDetails)
+  .filter(([key]) => key !== "Main")
+  .map(([, value]: [string, any]) => ({
+    label: value?.Class ?? "",
+    percentage: value?.ClassPercentage ?? 0,
+    memberCount: value?.MemberCount ?? 0,
+    shareBalance: value?.ShareBal ?? 0,
+  }));
+
         
         setData(prev => ({
           ...prev,
@@ -802,7 +850,7 @@ export function useDashboardData(): DashboardData {
         setData(prev => ({
           ...prev,
           borrowings: {
-            borrowData: borrowResponse.Borrowings.Main,
+            borrowData: borrowResponse?.Borrowings?.Main,
           },
           progress: updateProgress(currentStep, totalSteps),
         }));

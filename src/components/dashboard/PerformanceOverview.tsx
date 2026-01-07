@@ -188,10 +188,10 @@ type ProfitAndLossItem = {
 
 type Props = {
   profitData: ProfitAndLossItem[];
-  loading:boolean
+  // loading:boolean
 };
 
-export default function PerformanceOverview({ profitData,loading }: Props) {
+export default function PerformanceOverview({ profitData }: Props) {
   const [selected, setSelected] = useState<ProfitAndLossItem | null>(null);
 
   // Set default selected = last item when data loads
@@ -204,9 +204,9 @@ export default function PerformanceOverview({ profitData,loading }: Props) {
   const handleBarClick = (item: ProfitAndLossItem) => {
     setSelected(item);
   };
-  if(loading){
-    return <Typography>Loading..</Typography>
-  }
+  // if(loading){
+  //   return <Typography>Loading..</Typography>
+  // }
 
   // Still loading
   if (!selected) {

@@ -62,11 +62,18 @@ export default function AssetOverviewSection({
     [filteredClassification.length]
   );
 
-  const donutData = filteredClassification.map((item, index) => ({
-    label: item.label,
-    value: item.percentage,
-    color: randomColors[index],
-  }));
+  // const donutData = filteredClassification.map((item, index) => ({
+  //   label: item.label,
+  //   value: item.percentage,
+  //   color: randomColors[index],
+  // }));
+  // Change to:
+const donutData = filteredClassification.map((item, index) => ({
+  label: item.label,
+  value: Math.abs(item.percentage), // Use absolute value for visualization
+  color: randomColors[index],
+  isNegative: item.percentage < 0, // Track if negative
+}));
 
   const columns: Column[] = [
     { key: "label", type: "label" },
@@ -74,13 +81,22 @@ export default function AssetOverviewSection({
     { key: "change", type: "chip", align: "right" },
   ];
 
-  const chartTableData = filteredClassification.map((item, index) => ({
-    label: item.label,
-    percentage: `${item.percentage}%`,
-    amount: item.balance,
-    change: item.yesterdayPercentage,
-    color: randomColors[index],
-  }));
+  // const chartTableData = filteredClassification.map((item, index) => ({
+  //   label: item.label,
+  //   percentage: `${item.percentage}%`,
+  //   amount: item.balance,
+  //   change: item.yesterdayPercentage,
+  //   color: randomColors[index],
+  // }));
+  // Change to:
+const chartTableData = filteredClassification.map((item, index) => ({
+  label: item.label,
+  percentage: `${item.percentage >= 0 ? '+' : ''}${item.percentage}%`, // Show sign
+  amount: item.balance,
+  change: item.yesterdayPercentage,
+  color: randomColors[index],
+}));
+console.log('assetcharttabledata',chartTableData)
 
   const handleClosePopup = () => setActivePopup(null);
 

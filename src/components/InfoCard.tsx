@@ -274,28 +274,57 @@ export default function InfoCard({ data, onBarSelect }: Props) {
   const formattedValue = useMemo(() => {
     const v = displayValue;
 
+    // if (data.valueType === "currency") {
+    //   if (isNaN(v) || !isFinite(v)) return "₹ 0";
+
+    //   if (v < 100000) return `₹ ${v.toLocaleString("en-IN")}`;
+    //   const lakhs = v / 100000;
+    //   return `₹ ${lakhs.toFixed(1)}L`;
+    // }
     if (data.valueType === "currency") {
-      if (isNaN(v) || !isFinite(v)) return "₹ 0";
+  if (isNaN(v) || !isFinite(v)) return "₹ 0";
+  
+  const absValue = Math.abs(v);
+  let formatted;
+  
+  if (absValue < 100000) {
+    formatted = v.toLocaleString("en-IN");
+  } else {
+    const lakhs = absValue / 100000;
+    formatted = `${lakhs.toFixed(1)}L`;
+  }
+  
+  return v < 0 ? `-₹ ${formatted}` : `₹ ${formatted}`;
+}
 
-      if (v < 100000) return `₹ ${v.toLocaleString("en-IN")}`;
-      const lakhs = v / 100000;
-      return `₹ ${lakhs.toFixed(1)}L`;
-    }
-
+    // if (data.valueType === "percentage") {
+    //   return `${v.toFixed(1)}%`;
+    // }
     if (data.valueType === "percentage") {
-      return `${v.toFixed(1)}%`;
-    }
+  const formatted = `${Math.abs(v).toFixed(1)}%`;
+  return v < 0 ? `-${formatted}` : formatted;
+}
 
     // NEW: plain number format
-    return v.toLocaleString("en-IN");
+    // return v.toLocaleString("en-IN");
+    const formatted = v.toLocaleString("en-IN");
+return v < 0 ? `-${formatted}` : formatted;
   }, [displayValue, data.valueType]);
 
   // Handle the change text formatting
+  // const formattedChangeText = useMemo(() => {
+  //   // Show absolute value with 2 decimal places
+  //   const absChange = Math.abs(chipChange);
+  //   return `${absChange.toFixed(2)}%`;
+  // }, [chipChange]);
   const formattedChangeText = useMemo(() => {
-    // Show absolute value with 2 decimal places
-    const absChange = Math.abs(chipChange);
-    return `${absChange.toFixed(2)}%`;
-  }, [chipChange]);
+  const absChange = Math.abs(chipChange);
+  const formatted = `${absChange.toFixed(2)}%`;
+  
+  if (chipChange > 0) return `+${formatted}`;
+  if (chipChange < 0) return `-${formatted}`;
+  return formatted;
+}, [chipChange]);
 
   return (
     <Card
@@ -345,6 +374,7 @@ export default function InfoCard({ data, onBarSelect }: Props) {
           fontSize: 22,
           fontWeight: 700,
           color: theme.palette.text.primary,
+          // color: displayValue < 0 ? "#EF4444" : theme.palette.text.primary,
         }}
       >
         {formattedValue}

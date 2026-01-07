@@ -317,17 +317,55 @@ const getEventTitle = (event: EventDetails): string => {
  * @param dateStr The date string in "MM/DD/YYYY" format.
  * @returns An object containing the formatted date and weekday.
  */
+// const formatDateAndWeekday = (dateStr: string) => {
+//   // Assuming the date format is "MM/DD/YYYY" based on the response: "11/12/2025"
+//   const dateParts = dateStr.split("/");
+//   // Note: Date constructor uses YYYY-MM-DD for consistency. Month is 0-indexed.
+//   if (dateParts.length !== 3) {
+//     return { formattedDate: dateStr, weekday: "Unknown Day" };
+//   }
+//   const [month, day, year] = dateParts.map(Number);
+
+//   // Creating a date object: month - 1 because months are 0-indexed (0=Jan, 11=Dec)
+//   const date = new Date(year, month - 1, day);
+
+//   const formattedDate = date.toLocaleDateString("en-US", {
+//     year: "numeric",
+//     month: "long",
+//     day: "numeric",
+//   });
+//   const weekday = date.toLocaleDateString("en-US", { weekday: "long" });
+
+//   return { formattedDate, weekday };
+// };
 const formatDateAndWeekday = (dateStr: string) => {
-  // Assuming the date format is "MM/DD/YYYY" based on the response: "11/12/2025"
+  // Check if dateStr is undefined or empty
+  if (!dateStr || typeof dateStr !== 'string') {
+    return { formattedDate: "Date not specified", weekday: "Unknown Day" };
+  }
+  
+  // Your dates are in "DD/MM/YYYY" format based on your response: "10/01/2026"
   const dateParts = dateStr.split("/");
-  // Note: Date constructor uses YYYY-MM-DD for consistency. Month is 0-indexed.
+  
   if (dateParts.length !== 3) {
     return { formattedDate: dateStr, weekday: "Unknown Day" };
   }
-  const [month, day, year] = dateParts.map(Number);
+  
+  // Parse as DD/MM/YYYY - day first, then month, then year
+  const [day, month, year] = dateParts.map(Number);
+
+  // Validate date components
+  if (isNaN(day) || isNaN(month) || isNaN(year) || month < 1 || month > 12 || day < 1 || day > 31) {
+    return { formattedDate: dateStr, weekday: "Invalid Date" };
+  }
 
   // Creating a date object: month - 1 because months are 0-indexed (0=Jan, 11=Dec)
   const date = new Date(year, month - 1, day);
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return { formattedDate: dateStr, weekday: "Invalid Date" };
+  }
 
   const formattedDate = date.toLocaleDateString("en-US", {
     year: "numeric",

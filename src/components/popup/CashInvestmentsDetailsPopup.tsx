@@ -908,6 +908,7 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
       // 1️⃣ ASSET PERIOD WISE
       console.log(`${currentStep + 1}. Fetching Asset Period Wise data...`);
       const periodResponse = await getAssetPeriodWise();
+      console.log('PERIOD_WISE_RESPONSE',periodResponse)
       updateProgress();
       await delay(100); // Wait for token update
       
@@ -918,6 +919,7 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
         const bankData = periodResponse.GrowthWise.find(item => item.TypeName === 'Bank');
         const invData = periodResponse.GrowthWise.find(item => item.TypeName === 'INV');
         const totalData = periodResponse.GrowthWise.find(item => item.TypeName === 'Total');
+        console.log('TOTAL',totalData)
         
         periodData = [
           {
@@ -925,28 +927,32 @@ const CashInvestmentsDetailsPopup: React.FC<CashInvestmentsDetailsPopupProps> = 
             cash: cashData ? (cashData.LastDayBal / 100000).toFixed(1) : '0',
             bank: bankData ? (bankData.LastDayBal / 100000).toFixed(1) : '0',
             inv: invData ? (invData.LastDayBal / 100000).toFixed(1) : '0',
-            totalGrowth: totalData ? `${((totalData.LastDayBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+            // totalGrowth: totalData ? `${((totalData.LastDayBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+            totalGrowth: totalData ? (totalData.LastDayBal / 100000).toFixed(1) : '0'
           },
           {
             period: 'Last Month',
             cash: cashData ? (cashData.LastMonthBal / 100000).toFixed(1) : '0',
             bank: bankData ? (bankData.LastMonthBal / 100000).toFixed(1) : '0',
             inv: invData ? (invData.LastMonthBal / 100000).toFixed(1) : '0',
-            totalGrowth: totalData ? `${((totalData.LastMonthBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+            // totalGrowth: totalData ? `${((totalData.LastMonthBal - totalData.LastYearBal) / totalData.LastYearBal * 100).toFixed(1)}%` : '0%'
+             totalGrowth: totalData ? (totalData.LastMonthBal / 100000).toFixed(1) : '0'
           },
           {
             period: 'Last Year',
             cash: cashData ? (cashData.LastYearBal / 100000).toFixed(1) : '0',
             bank: bankData ? (bankData.LastYearBal / 100000).toFixed(1) : '0',
             inv: invData ? (invData.LastYearBal / 100000).toFixed(1) : '0',
-            totalGrowth: '0%'
+            // totalGrowth: '0%'
+             totalGrowth: totalData ? (totalData.LastYearBal / 100000).toFixed(1) : '0'
           },
           {
             period: 'Total',
             cash: cashData ? (cashData.Total / 100000).toFixed(1) : '0',
             bank: bankData ? (bankData.Total / 100000).toFixed(1) : '0',
             inv: invData ? (invData.Total / 100000).toFixed(1) : '0',
-            totalGrowth: '0%'
+            // totalGrowth: '0%'
+             totalGrowth: totalData ? (totalData.Total / 100000).toFixed(1) : '0'
           }
         ];
       }

@@ -1,4 +1,4 @@
-import { Box, Skeleton, Alert } from "@mui/material";
+import { Box} from "@mui/material";
 import InfoCard from "../InfoCard";
 import FluidIcon from "../../assets/icons/fluidIcon.svg?react";
 import CalendarIcon from "../../assets/icons/calendarIcon.svg?react";
@@ -12,7 +12,7 @@ import type {
   OverDueDetail,
   OverviewItem,
 } from "../../api/services/performanceService";
-import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
+// import InfoCardSkeleton from "../skeleton/InfoCardSkeleton";
 
 interface PerformanceSectionProps {
   id?:string;

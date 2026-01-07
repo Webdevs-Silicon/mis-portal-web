@@ -1,5 +1,20 @@
 import { VictoryPie } from "victory";
-import { formatCurrency } from "../utils/performanceDataTransformer";
+// import { formatCurrency } from "../utils/performanceDataTransformer";
+function formatCurrency(value: number): string {
+  if (isNaN(value) || !isFinite(value)) return "₹ 0";
+  
+  const absValue = Math.abs(value);
+  let formatted;
+  
+  if (absValue < 100000) {
+    formatted = value.toLocaleString("en-IN");
+  } else {
+    const lakhs = absValue / 100000;
+    formatted = `${lakhs.toFixed(1)}L`;
+  }
+  
+  return value < 0 ? `-₹ ${formatted}` : `₹ ${formatted}`;
+}
 
 type PieChartItem = {
   label: string;
@@ -36,6 +51,7 @@ export default function DonutChart({
     y: item.value,
     color: item.color,
   }));
+  const numericCenterValue = centerValue ? Number(centerValue) : 0;
 
   return (
     <div style={{ position: "relative", width, height }}>
@@ -83,7 +99,8 @@ export default function DonutChart({
             color: "#000",
           }}
         >
-          {formatCurrency(Number(centerValue))}
+          {/* {formatCurrency(Number(centerValue))} */}
+          {formatCurrency(numericCenterValue)}
         </div>
       </div>
     </div>
